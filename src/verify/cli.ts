@@ -131,6 +131,19 @@ async function main() {
     console.log(`  ${c.pass ? "PASS" : "FAIL"}  ${c.label}${c.detail ? " — " + c.detail : ""}`);
   }
 
+  // OpenTimestamps is advisory (temporal proof), reported separately.
+  if (otsPath) {
+    const o = report.ots;
+    if (!o) {
+      console.log(`  ----  OpenTimestamps: could not evaluate`);
+    } else if (o.bitcoinVerified) {
+      const when = o.timestamp ? new Date(o.timestamp * 1000).toISOString() : "?";
+      console.log(`  OTS   OpenTimestamps: Bitcoin-attested at ${when}`);
+    } else {
+      console.log(`  OTS   OpenTimestamps: ${o.status}`);
+    }
+  }
+
   if (args.username) {
     const look = lookupParticipant({ manifest, participantFileBytes, result }, args.username);
     console.log("");

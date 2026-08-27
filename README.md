@@ -51,7 +51,11 @@ npm run cli -- app --data ./data --port 8080
   schedule, optionally OpenTimestamp, then **Commit**. Draw winners with one
   click (fetches the predetermined block hash, or prompts for it offline).
 - **`/verify?g=<id>`** — the public verifier, auto-loading that giveaway's
-  published artifacts and re-checking everything in the browser.
+  published artifacts and re-checking everything in the browser. It also shows a
+  live **OpenTimestamps status** (attested / pending / present / absent),
+  verified server-side, with an Upgrade action for a pending proof. OTS is a
+  temporal proof and is reported separately from the cryptographic integrity
+  result — a not-yet-mined timestamp never fails verification.
 - **`/g/<id>/manifest.json`** (and `participants.json`, `result.json`,
   `giveaway.ots`) — the raw published artifacts, so anyone can download and
   verify with `opengiveaway-verify` or their own tools.

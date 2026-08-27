@@ -26,8 +26,13 @@ import {
   verifyOts,
   upgradeOts,
   otsAvailable,
+  guardOtsNetworkErrors,
 } from "../timestamp/ots.js";
 import * as store from "./store.js";
+
+// OpenTimestamps calendar sockets can emit late network errors; keep them from
+// crashing any command that touches OTS.
+guardOtsNetworkErrors();
 
 const program = new Command();
 program

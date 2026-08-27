@@ -26,7 +26,13 @@ import {
 import { drawWinners } from "../protocol/randomness.js";
 import { parseCsvParticipants } from "../sources/csv.js";
 import { EsploraProvider } from "../bitcoin/provider.js";
-import { stampCommitment, otsAvailable } from "../timestamp/ots.js";
+import {
+  stampCommitment,
+  otsAvailable,
+  verifyOts,
+  upgradeOts,
+  guardOtsNetworkErrors,
+} from "../timestamp/ots.js";
 import * as store from "../cli/store.js";
 
 const WEB_DIR = join(dirname(fileURLToPath(import.meta.url)), "../../web");
@@ -195,6 +201,41 @@ async function createGiveaway(opts: AppOptions, body: CreateBody) {
   return { ...summarize(opts.dataDir, id), ots_stamped: ots };
 }
 
+/**
+ * On-demand OpenTimestamps status for a giveaway. Reads the `.ots` proof and
+ * verifies it against the commitment (needs the optional `opentimestamps`
+ * package, and network to reach calendars / a block explorer). Returns a state
+ * the UI can render: absent | present | pending | attested | unavailable.
+ */
+async function otsStatus(dataDir: string, id: string) {
+  const dir = giveawayDir(dataDir, id);
+  const otsPath = join(dir, store.FILES.ots);
+  if (!existsSync(otsPath)) {
+    return { state: "absent" as const, status: "no OpenTimestamps proof" };
+  }
+  const manifest = store.readManifest(dir);
+  const commitment = commitmentHash(manifest);
+  const res = await verifyOts(commitment, readFileSync(otsPath));
+  if (!res.available) {
+    return { state: "unavailable" as const, status: res.status };
+  }
+  if (res.bitcoinVerified) {
+    return {
+      state: "attested" as const,
+      bitcoinVerified: true,
+      timestamp: res.timestamp,
+      status: res.status,
+    };
+  }
+  // Empty attestation set = still waiting on Bitcoin. Anything else (a parse or
+  // network error) means we have the proof but can't confirm it right now.
+  const pending = /pending/i.test(res.status);
+  return {
+    state: pending ? ("pending" as const) : ("present" as const),
+    status: res.status,
+  };
+}
+
 async function drawGiveaway(
   opts: AppOptions,
   id: string,
@@ -300,6 +341,27 @@ export function createApp(opts: AppOptions): Server {
         const body = req.headers["content-length"] ? JSON.parse(await readBody(req)) : {};
         return sendJson(res, 200, await drawGiveaway(opts, id, body));
       }
+      const ots = path.match(/^\/api\/giveaways\/([^/]+)\/ots$/);
+      if (ots && method === "GET") {
+        const id = decodeURIComponent(ots[1]!);
+        if (!existsSync(join(giveawayDir(opts.dataDir, id), store.FILES.manifest))) {
+          throw new HttpError(404, "not found");
+        }
+        return sendJson(res, 200, await otsStatus(opts.dataDir, id));
+      }
+      const otsUp = path.match(/^\/api\/giveaways\/([^/]+)\/ots\/upgrade$/);
+      if (otsUp && method === "POST") {
+        const id = decodeURIComponent(otsUp[1]!);
+        const dir = giveawayDir(opts.dataDir, id);
+        const otsPath = join(dir, store.FILES.ots);
+        if (!existsSync(otsPath)) throw new HttpError(404, "no OpenTimestamps proof to upgrade");
+        try {
+          store.writeOts(dir, await upgradeOts(readFileSync(otsPath)));
+        } catch (e) {
+          throw new HttpError(502, `upgrade failed: ${(e as Error).message}`);
+        }
+        return sendJson(res, 200, await otsStatus(opts.dataDir, id));
+      }
 
       // public artifacts: /g/<id>/<file>
       const art = path.match(/^\/g\/([^/]+)\/([^/]+)$/);
@@ -316,6 +378,7 @@ export function createApp(opts: AppOptions): Server {
 }
 
 export function startApp(opts: AppOptions & { port: number }): Server {
+  guardOtsNetworkErrors();
   const server = createApp(opts);
   server.listen(opts.port, () => {
     // eslint-disable-next-line no-console

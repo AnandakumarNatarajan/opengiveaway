@@ -107,6 +107,14 @@
   .banner.ok { background:var(--good-bg); color:var(--good); }
   .banner.bad { background:var(--bad-bg); color:var(--bad); }
 
+  .ots { display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:11px;
+    border:1px solid var(--border); background:var(--field); font-size:13px; flex-wrap:wrap; }
+  .ots .dot { width:9px; height:9px; border-radius:50%; flex:none; background:var(--muted); }
+  .ots.attested { background:var(--good-bg); border-color:transparent; color:var(--good); font-weight:600; }
+  .ots.attested .dot { background:var(--good); }
+  .ots.pending .dot { background:#e0a44a; }
+  .ots button { padding:6px 12px; font-size:12.5px; margin-left:auto; }
+
   .hidden { display:none; }
 
   footer { max-width:760px; margin:0 auto; padding:8px 20px 44px; color:var(--muted); font-size:12.5px; text-align:center; }
@@ -169,7 +177,8 @@
       <dl class="kv" id="summary"></dl>
       <p class="note" style="margin:16px 0 4px">Commitment (SHA-256 of the canonical manifest):</p>
       <p class="mono" id="commitment"></p>
-      <p class="note" id="otsNote"></p>
+      <div id="otsStatus" style="margin-top:16px"></div>
+      <p class="note" id="otsNote" style="margin-top:10px"></p>
     </div>
 
     <div class="card" id="winnersCard">
@@ -562,14 +571,6 @@ var OGV = (() => {
     );
     add("participant_merkle_root matches", root === manifest.participant_merkle_root);
     const commitment = commitmentHash(manifest);
-    if (input.ots) {
-      if (input.ots.bitcoinVerified) {
-        const when = input.ots.timestamp ? new Date(input.ots.timestamp * 1e3).toISOString() : "?";
-        add("OpenTimestamps Bitcoin-attested", true, when);
-      } else {
-        add("OpenTimestamps Bitcoin-attested", false, input.ots.status);
-      }
-    }
     if (input.result) {
       const r = input.result;
       const seed = bytesToHex(
@@ -594,7 +595,8 @@ var OGV = (() => {
     return {
       ok: checks.every((c) => c.pass),
       checks,
-      commitment
+      commitment,
+      ots: input.ots ?? null
     };
   }
   function lookupParticipant(input, usernameQuery) {
@@ -661,10 +663,15 @@ var OGV = (() => {
 </script>
 <script>
 (function () {
-  var state = { manifest: null, participantBytes: null, result: null };
+  var state = { manifest: null, participantBytes: null, result: null, base: null, id: null };
 
   function el(id) { return document.getElementById(id); }
   function show(id) { el(id).classList.remove("hidden"); }
+
+  function deriveId(base) {
+    var m = base && base.match(/^\/g\/([^/]+)\/$/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
 
   async function fetchFrom(base, quiet) {
     if (!quiet) el("loadMsg").textContent = "Loading…";
@@ -676,13 +683,70 @@ var OGV = (() => {
       state.participantBytes = new Uint8Array(await pRes.arrayBuffer());
       var rRes = await fetch(base + "result.json");
       state.result = rRes.ok ? await rRes.json() : null;
+      state.base = base; state.id = deriveId(base);
       el("loadMsg").textContent = "";
       render();
+      loadOts();
       return true;
     } catch (e) {
       if (!quiet) el("loadMsg").textContent =
         "Could not load from server (" + e.message + "). Use the file pickers instead.";
       return false;
+    }
+  }
+
+  // OpenTimestamps status: verified server-side when an API is present; when
+  // opened offline we can only report whether a .ots proof is bundled.
+  async function loadOts() {
+    try {
+      if (state.id) {
+        var r = await fetch("/api/giveaways/" + encodeURIComponent(state.id) + "/ots");
+        if (r.ok) { renderOts(await r.json()); return; }
+      }
+      if (state.base) {
+        var f = await fetch(state.base + "giveaway.ots");
+        renderOts({ state: f.ok ? "present" : "absent" });
+        return;
+      }
+      renderOts({ state: "files" });
+    } catch (e) {
+      renderOts({ state: "files" });
+    }
+  }
+
+  function renderOts(o) {
+    var box = el("otsStatus");
+    if (!box) return;
+    var html;
+    if (o.state === "attested") {
+      var when = o.timestamp ? new Date(o.timestamp * 1000).toISOString() : "";
+      html = '<div class="ots attested"><span class="dot"></span>OpenTimestamps · Bitcoin-attested' +
+        (when ? ' <span class="note" style="color:inherit">· ' + when + "</span>" : "") + "</div>";
+    } else if (o.state === "pending") {
+      html = '<div class="ots pending"><span class="dot"></span>OpenTimestamps · pending — anchored to calendars, not yet mined' +
+        (state.id ? '<button class="secondary" id="otsUp">Upgrade</button>' : "") + "</div>";
+    } else if (o.state === "present") {
+      html = '<div class="ots"><span class="dot"></span>OpenTimestamps proof bundled — verify with <span class="mono">opengiveaway-verify</span></div>';
+    } else if (o.state === "unavailable") {
+      html = '<div class="ots"><span class="dot"></span>OpenTimestamps proof present; server lacks the <span class="mono">opentimestamps</span> package</div>';
+    } else if (o.state === "absent") {
+      html = '<div class="ots"><span class="dot"></span>No OpenTimestamps proof was published for this giveaway</div>';
+    } else {
+      html = '<div class="ots"><span class="dot"></span>Load from a server, or run <span class="mono">opengiveaway-verify</span>, to check the <span class="mono">.ots</span> proof</div>';
+    }
+    box.innerHTML = html;
+    var up = el("otsUp");
+    if (up) up.addEventListener("click", doUpgrade);
+  }
+
+  async function doUpgrade() {
+    var up = el("otsUp");
+    up.disabled = true; up.textContent = "Upgrading…";
+    try {
+      var r = await fetch("/api/giveaways/" + encodeURIComponent(state.id) + "/ots/upgrade", { method: "POST" });
+      renderOts(await r.json());
+    } catch (e) {
+      up.disabled = false; up.textContent = "Upgrade";
     }
   }
 
@@ -714,7 +778,9 @@ var OGV = (() => {
       el("loadMsg").textContent = "Provide at least manifest.json and participants.json.";
       return;
     }
+    state.base = null; state.id = null;
     render();
+    loadOts();
   }
 
   function render() {
@@ -752,9 +818,8 @@ var OGV = (() => {
       kv("Merkle root", '<span class="mono">' + m.participant_merkle_root + "</span>");
     el("commitment").textContent = report.commitment;
     el("otsNote").innerHTML =
-      "OpenTimestamps: verify <span class=\"mono\">giveaway.ots</span> against this commitment with " +
-      "<span class=\"mono\">opengiveaway-verify</span> or the <a href=\"https://opentimestamps.org\">OTS</a> tools " +
-      "to confirm it was anchored to Bitcoin before the draw.";
+      "OpenTimestamps anchors this commitment to Bitcoin, proving it existed " +
+      "before the randomness block — independent of the checks above.";
 
     renderWinners();
   }

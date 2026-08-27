@@ -309,9 +309,13 @@ export interface VerifyInput {
 }
 
 export interface VerifyReport {
+  /** Cryptographic integrity only — hashes, Merkle root, and draw reproduction.
+   * OpenTimestamps is a separate, temporal proof and never affects this. */
   ok: boolean;
   checks: CheckLine[];
   commitment: string;
+  /** Advisory OpenTimestamps status, echoed from the caller (null if unknown). */
+  ots: OtsInput | null;
 }
 
 function parseParticipantFile(bytes: Uint8Array): ParticipantFile {
@@ -353,16 +357,9 @@ export function verifyGiveaway(input: VerifyInput): VerifyReport {
 
   const commitment = commitmentHash(manifest);
 
-  if (input.ots) {
-    if (input.ots.bitcoinVerified) {
-      const when = input.ots.timestamp
-        ? new Date(input.ots.timestamp * 1000).toISOString()
-        : "?";
-      add("OpenTimestamps Bitcoin-attested", true, when);
-    } else {
-      add("OpenTimestamps Bitcoin-attested", false, input.ots.status);
-    }
-  }
+  // OpenTimestamps is a temporal proof (did the commitment exist before the
+  // draw?), not part of the cryptographic reproduction — so it is echoed
+  // separately and never flips `ok`.
 
   if (input.result) {
     const r = input.result;
@@ -392,6 +389,7 @@ export function verifyGiveaway(input: VerifyInput): VerifyReport {
     ok: checks.every((c) => c.pass),
     checks,
     commitment,
+    ots: input.ots ?? null,
   };
 }
 

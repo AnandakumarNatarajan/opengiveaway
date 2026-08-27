@@ -81,6 +81,14 @@ describe("giveaway server API", () => {
     expect((await post("/api/giveaways", { giveaway_id: "toomany", csv: "username\nonlyone\n", winner_count: 9, block_height: 5 })).status).toBe(400);
   });
 
+  it("reports OTS as absent when no proof was stamped", async () => {
+    await post("/api/giveaways", { giveaway_id: "noots", csv: CSV, winner_count: 1, block_height: 5 });
+    const res = await fetch(base + "/api/giveaways/noots/ots");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.state).toBe("absent");
+  });
+
   it("does not serve unknown files or traverse paths", async () => {
     expect((await fetch(base + "/g/t1/secret.txt")).status).toBe(404);
     expect((await fetch(base + "/g/..%2f..%2fpackage.json")).status).toBe(404);
