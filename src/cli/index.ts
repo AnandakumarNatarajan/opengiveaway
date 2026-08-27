@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import { writeFileSync } from "node:fs";
+import { writeFileSync, readFileSync, existsSync } from "node:fs";
+import { createServer } from "node:http";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { readCsvParticipants } from "../sources/csv.js";
 import {
   buildGiveaway,
@@ -351,6 +354,64 @@ program
       console.error(`Upgrade failed: ${(err as Error).message}`);
       process.exitCode = 1;
     }
+  });
+
+// ---------------------------------------------------------------------------
+// serve — public web verifier over a giveaway directory
+// ---------------------------------------------------------------------------
+program
+  .command("serve")
+  .description(
+    "Serve the self-contained web verifier plus a giveaway directory's public artifacts",
+  )
+  .option("--out <dir>", "giveaway directory to publish", "out")
+  .option("--port <n>", "port", (v) => parseInt(v, 10), 8080)
+  .action((opts) => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const verifierPath = join(here, "../../web/verifier.html");
+    if (!existsSync(verifierPath)) {
+      console.error(
+        `Verifier not built: ${verifierPath} missing. Run \`npm run build:web\` first.`,
+      );
+      process.exitCode = 1;
+      return;
+    }
+
+    // Only these files are ever served — no arbitrary path access.
+    const publicFiles: Record<string, string> = {
+      "/manifest.json": join(opts.out, "manifest.json"),
+      "/participants.json": join(opts.out, "participants.json"),
+      "/result.json": join(opts.out, "result.json"),
+      "/giveaway.ots": join(opts.out, "giveaway.ots"),
+    };
+    const mime = (p: string) =>
+      p.endsWith(".json")
+        ? "application/json"
+        : p.endsWith(".html")
+          ? "text/html; charset=utf-8"
+          : "application/octet-stream";
+
+    const server = createServer((req, res) => {
+      const url = (req.url ?? "/").split("?")[0]!;
+      if (url === "/" || url === "/index.html") {
+        res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+        res.end(readFileSync(verifierPath));
+        return;
+      }
+      const file = publicFiles[url];
+      if (file && existsSync(file)) {
+        res.writeHead(200, { "content-type": mime(file) });
+        res.end(readFileSync(file));
+        return;
+      }
+      res.writeHead(404, { "content-type": "text/plain" });
+      res.end("not found");
+    });
+
+    server.listen(opts.port, () => {
+      console.log(`Serving verifier + ${opts.out}/ at http://localhost:${opts.port}`);
+      console.log("Open that URL and click “Load from this page's server”.");
+    });
   });
 
 program.parseAsync(process.argv);

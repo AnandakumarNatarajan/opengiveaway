@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OpenGiveaway Verifier</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --fg: #1a1d21; --muted: #5c6773;
+    --border: #e2e6ea; --pass: #1a7f4b; --fail: #c62828; --accent: #2d5bd7;
+    --badge: #eef2ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1216; --card: #171b21; --fg: #e6e9ee; --muted: #9aa4b0;
+      --border: #262c34; --pass: #4ccb86; --fail: #ff6b6b; --accent: #6d95ff;
+      --badge: #1e2536;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px; margin: 0 0 16px;
+  }
+  .card h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--muted); margin: 0 0 12px; }
+  button {
+    font: inherit; background: var(--accent); color: #fff; border: 0;
+    padding: 9px 16px; border-radius: 8px; cursor: pointer;
+  }
+  button.secondary { background: transparent; color: var(--accent);
+    border: 1px solid var(--border); }
+  button:disabled { opacity: .5; cursor: default; }
+  input[type=text] {
+    font: inherit; padding: 9px 12px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--bg); color: var(--fg); width: 100%;
+  }
+  label.file { display: inline-flex; align-items: center; gap: 8px;
+    margin: 4px 12px 4px 0; color: var(--muted); font-size: 13px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .check { display: flex; align-items: baseline; gap: 8px; padding: 5px 0;
+    border-bottom: 1px dashed var(--border); }
+  .check:last-child { border-bottom: 0; }
+  .tag { font-weight: 700; font-size: 12px; letter-spacing: .05em;
+    padding: 1px 6px; border-radius: 5px; }
+  .tag.pass { color: var(--pass); } .tag.fail { color: var(--fail); }
+  .detail { color: var(--muted); font-size: 13px; word-break: break-all; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px; word-break: break-all; }
+  .kv { display: grid; grid-template-columns: 160px 1fr; gap: 4px 12px; }
+  .kv dt { color: var(--muted); } .kv dd { margin: 0; }
+  .winner { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+  .rank { display: inline-flex; width: 26px; height: 26px; align-items: center;
+    justify-content: center; border-radius: 50%; background: var(--badge);
+    font-weight: 700; font-size: 13px; }
+  .badge { background: var(--badge); color: var(--accent); font-weight: 700;
+    padding: 2px 8px; border-radius: 6px; font-size: 12px; }
+  .banner { padding: 12px 14px; border-radius: 8px; font-weight: 600; }
+  .banner.ok { background: color-mix(in srgb, var(--pass) 15%, transparent); color: var(--pass); }
+  .banner.bad { background: color-mix(in srgb, var(--fail) 15%, transparent); color: var(--fail); }
+  .hidden { display: none; }
+  .note { color: var(--muted); font-size: 13px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>OpenGiveaway Verifier</h1>
+  <p class="sub">Independently verify a giveaway from its published files. All
+    checks run in your browser — no server is trusted.</p>
+
+  <div class="card" id="loader">
+    <h2>1 · Load the giveaway</h2>
+    <div class="row" style="margin-bottom:12px">
+      <button id="loadServer">Load from this page's server</button>
+      <span class="note">or load files you downloaded:</span>
+    </div>
+    <div class="row">
+      <label class="file">manifest.json <input type="file" id="fM" accept=".json"></label>
+      <label class="file">participants.json <input type="file" id="fP" accept=".json"></label>
+      <label class="file">result.json <span class="note">(optional)</span> <input type="file" id="fR" accept=".json"></label>
+    </div>
+    <p class="note" id="loadMsg" style="margin-bottom:0"></p>
+  </div>
+
+  <div id="report" class="hidden">
+    <div class="card">
+      <h2>Result</h2>
+      <div id="banner" class="banner"></div>
+    </div>
+
+    <div class="card">
+      <h2>2 · Commitment integrity</h2>
+      <div id="checks"></div>
+    </div>
+
+    <div class="card">
+      <h2>3 · Giveaway details</h2>
+      <dl class="kv" id="summary"></dl>
+      <p class="note" style="margin:12px 0 0">Commitment (SHA-256 of the canonical manifest):</p>
+      <p class="mono" id="commitment"></p>
+      <p class="note" id="otsNote"></p>
+    </div>
+
+    <div class="card" id="winnersCard">
+      <h2>4 · Winners</h2>
+      <div id="winners"></div>
+    </div>
+
+    <div class="card">
+      <h2>5 · Was I included?</h2>
+      <div class="row">
+        <input type="text" id="lookup" placeholder="@username" style="flex:1;min-width:200px">
+        <button id="lookupBtn" class="secondary">Verify</button>
+      </div>
+      <div id="lookupResult" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/*__BUNDLE__*/
+</script>
+<script>
+(function () {
+  var state = { manifest: null, participantBytes: null, result: null };
+
+  function el(id) { return document.getElementById(id); }
+  function show(id) { el(id).classList.remove("hidden"); }
+
+  async function fetchServer() {
+    el("loadMsg").textContent = "Loading…";
+    try {
+      var mRes = await fetch("./manifest.json");
+      var pRes = await fetch("./participants.json");
+      if (!mRes.ok || !pRes.ok) throw new Error("manifest.json / participants.json not found on this server");
+      state.manifest = await mRes.json();
+      state.participantBytes = new Uint8Array(await pRes.arrayBuffer());
+      var rRes = await fetch("./result.json");
+      state.result = rRes.ok ? await rRes.json() : null;
+      render();
+    } catch (e) {
+      el("loadMsg").textContent = "Could not load from server (" + e.message + "). Use the file pickers instead.";
+    }
+  }
+
+  function readText(file) {
+    return new Promise(function (res, rej) {
+      var r = new FileReader(); r.onload = function () { res(r.result); };
+      r.onerror = rej; r.readAsText(file);
+    });
+  }
+  function readBytes(file) {
+    return new Promise(function (res, rej) {
+      var r = new FileReader(); r.onload = function () { res(new Uint8Array(r.result)); };
+      r.onerror = rej; r.readAsArrayBuffer(file);
+    });
+  }
+
+  async function tryRenderFromFiles() {
+    if (!state.manifest || !state.participantBytes) {
+      el("loadMsg").textContent = "Provide at least manifest.json and participants.json.";
+      return;
+    }
+    render();
+  }
+
+  function render() {
+    var report = OGV.verifyGiveaway({
+      manifest: state.manifest,
+      participantFileBytes: state.participantBytes,
+      result: state.result,
+    });
+
+    show("report");
+    var banner = el("banner");
+    banner.className = "banner " + (report.ok ? "ok" : "bad");
+    banner.textContent = report.ok
+      ? "✓ Verified — every check reproduced from the published files."
+      : "✗ Verification FAILED — see the failing checks below.";
+
+    var checks = el("checks"); checks.innerHTML = "";
+    report.checks.forEach(function (c) {
+      var d = document.createElement("div"); d.className = "check";
+      d.innerHTML =
+        '<span class="tag ' + (c.pass ? "pass" : "fail") + '">' + (c.pass ? "PASS" : "FAIL") + "</span>" +
+        "<span>" + c.label + "</span>" +
+        (c.detail ? '<span class="detail">— ' + c.detail + "</span>" : "");
+      checks.appendChild(d);
+    });
+
+    var m = state.manifest;
+    el("summary").innerHTML =
+      kv("Giveaway ID", m.giveaway_id) +
+      kv("Participants", m.participant_count) +
+      kv("Winners", m.winner_count) +
+      kv("Scheduled", m.selection.scheduled_at + " (" + m.selection.timezone + ")") +
+      kv("Randomness", m.randomness.selection_rule) +
+      kv("Bitcoin block", "#" + m.randomness.block_height) +
+      kv("Merkle root", '<span class="mono">' + m.participant_merkle_root + "</span>");
+    el("commitment").textContent = report.commitment;
+    el("otsNote").innerHTML =
+      "OpenTimestamps: verify <span class=\"mono\">giveaway.ots</span> against this commitment with " +
+      "<span class=\"mono\">opengiveaway-verify</span> or the <a href=\"https://opentimestamps.org\">OTS</a> tools " +
+      "to confirm it was anchored to Bitcoin before the draw.";
+
+    renderWinners();
+  }
+
+  function renderWinners() {
+    var card = el("winnersCard"), box = el("winners");
+    if (!state.result || !state.result.winners) { card.classList.add("hidden"); return; }
+    card.classList.remove("hidden");
+    box.innerHTML =
+      '<p class="note">Block #' + state.result.bitcoinBlockHeight +
+      ' hash <span class="mono">' + state.result.bitcoinBlockHash + "</span></p>";
+    state.result.winners.forEach(function (w, i) {
+      var d = document.createElement("div"); d.className = "winner";
+      d.innerHTML = '<span class="rank">' + (i + 1) + "</span><span>@" + w.username +
+        ' <span class="note">(entry #' + w.entry + ")</span></span>";
+      box.appendChild(d);
+    });
+  }
+
+  function kv(k, v) { return "<dt>" + k + "</dt><dd>" + v + "</dd>"; }
+
+  function doLookup() {
+    var q = el("lookup").value.trim();
+    if (!q) return;
+    var res = OGV.lookupParticipant({
+      manifest: state.manifest,
+      participantFileBytes: state.participantBytes,
+      result: state.result,
+    }, q);
+    var out = el("lookupResult");
+    if (!res.found) {
+      out.innerHTML = '<div class="banner bad">✗ @' + OGV.normalizeUsername(q) +
+        " is NOT in the committed participant set.</div>";
+      return;
+    }
+    var p = res.participant;
+    var winnerBadge = res.isWinner ? ' <span class="badge">WINNER #' + res.winnerRank + "</span>" : "";
+    out.innerHTML =
+      '<div class="banner ' + (res.proofValid ? "ok" : "bad") + '">' +
+      (res.proofValid ? "✓" : "✗") + " @" + p.username + " (entry #" + p.entry + ")" + winnerBadge +
+      "</div>" +
+      '<div class="check"><span class="tag ' + (res.proofValid ? "pass" : "fail") + '">' +
+      (res.proofValid ? "PASS" : "FAIL") +
+      '</span><span>Merkle inclusion proof recomputes to the committed root</span></div>';
+  }
+
+  el("loadServer").addEventListener("click", fetchServer);
+  el("lookupBtn").addEventListener("click", doLookup);
+  el("lookup").addEventListener("keydown", function (e) { if (e.key === "Enter") doLookup(); });
+
+  el("fM").addEventListener("change", async function (e) {
+    state.manifest = JSON.parse(await readText(e.target.files[0])); tryRenderFromFiles();
+  });
+  el("fP").addEventListener("change", async function (e) {
+    state.participantBytes = await readBytes(e.target.files[0]); tryRenderFromFiles();
+  });
+  el("fR").addEventListener("change", async function (e) {
+    state.result = JSON.parse(await readText(e.target.files[0])); tryRenderFromFiles();
+  });
+})();
+</script>
+</body>
+</html>

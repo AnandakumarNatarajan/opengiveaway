@@ -12,10 +12,12 @@ the participant commitment, the timestamp proof, the Bitcoin randomness, and the
 deterministic calculation — verify it yourself,"* ideally **without needing the
 organizer's server**.
 
-This is the **Phase 1 MVP**: CSV participants, the full protocol core, and a
-CLI (`commit → draw → verify`). Instagram and a web UI are later phases; the
-protocol engine is deliberately independent of any UI or database so those can
-be added without touching it.
+This is **Phases 1 & 3**: CSV participants, the full protocol core, the
+organizer CLI (`commit → draw → verify`), **and public verification** — a
+dependency-free standalone verifier that runs identically in Node and the
+browser, plus a self-contained web page. Instagram (Phase 2) is intentionally
+skipped for now; the protocol engine is independent of any UI or database so it
+can be added later without touching it.
 
 ## What it answers
 
@@ -67,8 +69,46 @@ npm run cli -- check-proof --proof alice-proof.json
 ```
 
 `check-proof` recomputes the Merkle root from the leaf + proof and compares it
-to the committed root — no server, no full participant list required. This is
-the same computation a browser verifier would run (Phase 3).
+to the committed root — no server, no full participant list required.
+
+## Public verification (Phase 3)
+
+Anyone can re-derive the entire result from the published files — **without
+trusting the organizer's server**. Two independent verifiers, both driven by
+the same dependency-free `verify/core` (an isomorphic re-implementation of the
+protocol that is cross-checked against the engine in the test suite):
+
+### Standalone CLI verifier
+
+```bash
+# from a downloaded giveaway directory:
+npx opengiveaway-verify ./downloaded-giveaway --username @alice
+# or loose files:
+npx opengiveaway-verify --manifest manifest.json --participants participants.json --result result.json
+```
+
+It recomputes the file hash, Merkle root, commitment, and winners from scratch
+using a pure-JS SHA-256 (no `node:crypto`), and — with `--username` — checks a
+participant's inclusion proof and winner status. OpenTimestamps is verified too
+if the optional `opentimestamps` package is present.
+
+### Self-contained web verifier
+
+`web/verifier.html` (built by `npm run build:web`) is a single file with all
+crypto inlined. It runs two ways:
+
+```bash
+# 1) Serve it alongside a giveaway directory:
+npm run cli -- serve --out out --port 8080
+#    open http://localhost:8080 and click "Load from this page's server"
+
+# 2) Fully offline: open web/verifier.html from disk and load the downloaded
+#    manifest.json / participants.json / result.json with the file pickers.
+```
+
+The page shows the commitment-integrity checks, the winners, and a **"Was I
+included?"** lookup that recomputes the Merkle inclusion proof in the browser —
+no server is trusted to answer *"yes, Alice participated."*
 
 ## CSV format
 
@@ -121,7 +161,13 @@ src/
   sources/csv   CSV participant source (the only source in Phase 1)
   bitcoin/      pluggable block provider (Esplora/mempool.space; offline for tests)
   timestamp/    OpenTimestamps wrapper (optional dependency)
-  cli/          commit / draw / verify / prove / check-proof / upgrade
+  cli/          commit / draw / verify / prove / check-proof / upgrade / serve
+  verify/       isomorphic, dependency-free verifier (Node + browser)
+    sha256      pure-JS SHA-256 (cross-checked against node:crypto)
+    core        canonical JSON, Merkle verify, commitment, seed, winners
+    cli         standalone `opengiveaway-verify` binary
+    browser     bundled into web/verifier.html
+web/            self-contained public web verifier (template + built HTML)
 ```
 
 ## OpenTimestamps note
@@ -134,11 +180,12 @@ protocol has no such dependencies.
 
 ## Status / roadmap
 
-- **Phase 1 (this repo):** CSV → freeze → Merkle → manifest → SHA-256 →
-  OpenTimestamps → Bitcoin randomness → winners → verification. ✅
-- **Phase 2:** Instagram OAuth/API comment source (same participant pipeline).
-- **Phase 3:** Public web verifier, participant lookup page, browser-side Merkle
-  verification, standalone CLI verifier package.
+- **Phase 1:** CSV → freeze → Merkle → manifest → SHA-256 → OpenTimestamps →
+  Bitcoin randomness → multiple winners → verification. ✅
+- **Phase 3:** Public web verifier, participant lookup with browser-side Merkle
+  verification, standalone dependency-free CLI verifier package, `serve`. ✅
+- **Phase 2 (deferred):** Instagram OAuth/API comment source feeding the same
+  participant pipeline.
 
 ## License
 

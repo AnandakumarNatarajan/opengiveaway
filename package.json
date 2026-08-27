@@ -5,14 +5,18 @@
   "type": "module",
   "license": "MIT",
   "bin": {
-    "opengiveaway": "./dist/cli/index.js"
+    "opengiveaway": "./dist/cli/index.js",
+    "opengiveaway-verify": "./dist/verify/cli.js"
   },
   "exports": {
-    ".": "./dist/protocol/index.js"
+    ".": "./dist/protocol/index.js",
+    "./verify": "./dist/verify/core.js"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && npm run build:web",
+    "build:web": "node scripts/build-web.mjs",
     "cli": "tsx src/cli/index.ts",
+    "verify": "tsx src/verify/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -26,6 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.7.4",
+    "esbuild": "^0.28.2",
     "tsx": "^4.19.1",
     "typescript": "^5.6.2",
     "vitest": "^2.1.1"
