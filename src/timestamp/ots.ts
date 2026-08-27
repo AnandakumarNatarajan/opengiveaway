@@ -18,7 +18,10 @@ type OtsModule = any;
 
 async function loadOts(): Promise<OtsModule | null> {
   try {
-    const mod = await import("opentimestamps");
+    // Indirect specifier + @vite-ignore so bundlers/test runners don't try to
+    // statically resolve this optional dependency.
+    const pkg = "opentimestamps";
+    const mod = await import(/* @vite-ignore */ pkg);
     return (mod as any).default ?? mod;
   } catch {
     return null;

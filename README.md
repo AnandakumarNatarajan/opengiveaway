@@ -36,7 +36,42 @@ npm run build     # compiles to dist/  (then `opengiveaway` is runnable)
 
 Node ≥ 20. During development, run the CLI with `npm run cli -- <command>`.
 
-## Quickstart
+## Self-hosted server (organizer Web UI + API)
+
+The quickest way to run everything — create giveaways, draw them, and hand out
+a verifier link — is the built-in server:
+
+```bash
+npm run build          # compiles dist/ and builds web/verifier.html
+npm run cli -- app --data ./data --port 8080
+# open http://localhost:8080
+```
+
+- **`/`** — organizer UI: paste or upload a CSV, set winners / block height /
+  schedule, optionally OpenTimestamp, then **Commit**. Draw winners with one
+  click (fetches the predetermined block hash, or prompts for it offline).
+- **`/verify?g=<id>`** — the public verifier, auto-loading that giveaway's
+  published artifacts and re-checking everything in the browser.
+- **`/g/<id>/manifest.json`** (and `participants.json`, `result.json`,
+  `giveaway.ots`) — the raw published artifacts, so anyone can download and
+  verify with `opengiveaway-verify` or their own tools.
+
+Each giveaway is stored as `./data/<id>/` in exactly the published-artifact
+layout. The HTTP layer holds no protocol logic — it calls the same engine the
+CLI does.
+
+### Docker
+
+```bash
+docker compose up --build     # server on :8080, data in a named volume
+# or:
+docker build -t opengiveaway .
+docker run -p 8080:8080 -v opengiveaway-data:/data opengiveaway
+```
+
+## Organizer CLI (scriptable alternative)
+
+Prefer the command line? The same lifecycle without the server:
 
 ```bash
 # 1) COMMIT: freeze participants, build + hash the manifest, OpenTimestamp it.
@@ -161,13 +196,17 @@ src/
   sources/csv   CSV participant source (the only source in Phase 1)
   bitcoin/      pluggable block provider (Esplora/mempool.space; offline for tests)
   timestamp/    OpenTimestamps wrapper (optional dependency)
-  cli/          commit / draw / verify / prove / check-proof / upgrade / serve
+  cli/          commit / draw / verify / prove / check-proof / upgrade / serve / app
+  server/       self-hosted HTTP layer: organizer UI + JSON API + artifacts
   verify/       isomorphic, dependency-free verifier (Node + browser)
     sha256      pure-JS SHA-256 (cross-checked against node:crypto)
     core        canonical JSON, Merkle verify, commitment, seed, winners
     cli         standalone `opengiveaway-verify` binary
     browser     bundled into web/verifier.html
-web/            self-contained public web verifier (template + built HTML)
+web/
+  app.html      organizer Web UI (served by `app`)
+  verifier.html self-contained public verifier (template + built HTML)
+Dockerfile, docker-compose.yml   self-hosted deployment
 ```
 
 ## OpenTimestamps note
@@ -183,7 +222,8 @@ protocol has no such dependencies.
 - **Phase 1:** CSV → freeze → Merkle → manifest → SHA-256 → OpenTimestamps →
   Bitcoin randomness → multiple winners → verification. ✅
 - **Phase 3:** Public web verifier, participant lookup with browser-side Merkle
-  verification, standalone dependency-free CLI verifier package, `serve`. ✅
+  verification, standalone dependency-free CLI verifier package. ✅
+- **Self-hosted app:** organizer Web UI + JSON API + Docker packaging. ✅
 - **Phase 2 (deferred):** Instagram OAuth/API comment source feeding the same
   participant pipeline.
 

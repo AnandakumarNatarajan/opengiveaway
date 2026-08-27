@@ -414,4 +414,18 @@ program
     });
   });
 
+// ---------------------------------------------------------------------------
+// app — full self-hosted organizer server (Web UI + API + verifier)
+// ---------------------------------------------------------------------------
+program
+  .command("app")
+  .description("Run the self-hosted organizer Web UI + API (create, draw, verify giveaways)")
+  .option("--data <dir>", "data directory for giveaways", "data")
+  .option("--port <n>", "port", (v) => parseInt(v, 10), 8080)
+  .option("--provider <url>", "Esplora API base URL", "https://mempool.space/api")
+  .action(async (opts) => {
+    const { startApp } = await import("../server/app.js");
+    startApp({ dataDir: opts.data, port: opts.port, providerUrl: opts.provider });
+  });
+
 program.parseAsync(process.argv);

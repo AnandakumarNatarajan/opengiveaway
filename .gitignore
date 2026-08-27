@@ -4,5 +4,6 @@ dist/
 .DS_Store
 # local giveaway working directories
 out/
+data/
 *.ots
 !examples/**/*.ots

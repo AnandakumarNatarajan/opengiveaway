@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>OpenGiveaway Verifier</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%232d5bd7'/%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' stroke='white' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 <style>
   :root {
     --bg: #f6f7f9; --card: #ffffff; --fg: #1a1d21; --muted: #5c6773;
@@ -601,20 +602,34 @@ var OGV = (() => {
   function el(id) { return document.getElementById(id); }
   function show(id) { el(id).classList.remove("hidden"); }
 
-  async function fetchServer() {
-    el("loadMsg").textContent = "Loading…";
+  async function fetchFrom(base, quiet) {
+    if (!quiet) el("loadMsg").textContent = "Loading…";
     try {
-      var mRes = await fetch("./manifest.json");
-      var pRes = await fetch("./participants.json");
-      if (!mRes.ok || !pRes.ok) throw new Error("manifest.json / participants.json not found on this server");
+      var mRes = await fetch(base + "manifest.json");
+      var pRes = await fetch(base + "participants.json");
+      if (!mRes.ok || !pRes.ok) throw new Error("manifest.json / participants.json not found");
       state.manifest = await mRes.json();
       state.participantBytes = new Uint8Array(await pRes.arrayBuffer());
-      var rRes = await fetch("./result.json");
+      var rRes = await fetch(base + "result.json");
       state.result = rRes.ok ? await rRes.json() : null;
+      el("loadMsg").textContent = "";
       render();
+      return true;
     } catch (e) {
-      el("loadMsg").textContent = "Could not load from server (" + e.message + "). Use the file pickers instead.";
+      if (!quiet) el("loadMsg").textContent =
+        "Could not load from server (" + e.message + "). Use the file pickers instead.";
+      return false;
     }
+  }
+
+  function fetchServer() { return fetchFrom("./", false); }
+
+  // If opened as /verify?g=<id>, auto-load that giveaway's published artifacts.
+  async function autoLoad() {
+    var id = new URLSearchParams(location.search).get("g");
+    if (!id) return;
+    el("loadMsg").textContent = "Loading giveaway “" + id + "”…";
+    await fetchFrom("/g/" + encodeURIComponent(id) + "/", false);
   }
 
   function readText(file) {
@@ -735,6 +750,8 @@ var OGV = (() => {
   el("fR").addEventListener("change", async function (e) {
     state.result = JSON.parse(await readText(e.target.files[0])); tryRenderFromFiles();
   });
+
+  autoLoad();
 })();
 </script>
 </body>

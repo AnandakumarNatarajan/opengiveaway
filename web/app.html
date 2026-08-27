@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OpenGiveaway</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%232d5bd7'/%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' stroke='white' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg:#f6f7f9; --card:#fff; --fg:#1a1d21; --muted:#5c6773; --border:#e2e6ea;
+    --pass:#1a7f4b; --fail:#c62828; --accent:#2d5bd7; --badge:#eef2ff; --field:#fbfcfd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#0f1216; --card:#171b21; --fg:#e6e9ee; --muted:#9aa4b0; --border:#262c34;
+      --pass:#4ccb86; --fail:#ff6b6b; --accent:#6d95ff; --badge:#1e2536; --field:#12161c;
+    }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:820px; margin:0 auto; padding:24px 16px 72px; }
+  header { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px; }
+  h1 { font-size:22px; margin:0; letter-spacing:-.01em; }
+  .sub { color:var(--muted); margin:0 0 24px; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:20px; margin:0 0 16px; }
+  .card h2 { font-size:13px; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--muted); margin:0 0 16px; font-weight:600; }
+  label { display:block; font-size:13px; color:var(--muted); margin:0 0 5px; }
+  input, textarea, select { font:inherit; width:100%; padding:9px 11px; background:var(--field);
+    color:var(--fg); border:1px solid var(--border); border-radius:8px; }
+  textarea { resize:vertical; min-height:96px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:13px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .field { margin-bottom:14px; }
+  .hint { font-size:12px; color:var(--muted); margin:5px 0 0; }
+  .check { display:flex; align-items:center; gap:8px; }
+  .check input { width:auto; }
+  .check label { margin:0; }
+  button { font:inherit; font-weight:500; background:var(--accent); color:#fff; border:0;
+    padding:10px 18px; border-radius:8px; cursor:pointer; }
+  button.ghost { background:transparent; color:var(--accent); border:1px solid var(--border); padding:7px 13px; }
+  button:disabled { opacity:.5; cursor:default; }
+  .msg { font-size:13px; margin-top:12px; }
+  .msg.err { color:var(--fail); } .msg.ok { color:var(--pass); }
+  .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; word-break:break-all; }
+  .g { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  .g-top { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .g-id { font-weight:600; }
+  .pill { font-size:12px; padding:2px 9px; border-radius:999px; background:var(--badge); color:var(--accent); font-weight:600; }
+  .pill.done { color:var(--pass); background:color-mix(in srgb,var(--pass) 14%,transparent); }
+  .meta { color:var(--muted); font-size:13px; margin:6px 0 0; }
+  .winners { margin:10px 0 0; padding:0; list-style:none; }
+  .winners li { display:flex; align-items:center; gap:9px; padding:3px 0; }
+  .rank { display:inline-flex; width:22px; height:22px; align-items:center; justify-content:center;
+    border-radius:50%; background:var(--badge); font-weight:700; font-size:12px; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .empty { color:var(--muted); font-size:14px; }
+  hr { border:0; border-top:1px solid var(--border); margin:16px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>OpenGiveaway</h1>
+    <a href="/verify">Public verifier →</a>
+  </header>
+  <p class="sub">Commit a participant set, anchor it, and draw winners from Bitcoin randomness.</p>
+
+  <div class="card">
+    <h2>New giveaway</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="id">Giveaway ID</label>
+        <input id="id" placeholder="giveaway-001" autocomplete="off">
+        <p class="hint">Letters, numbers, <span class="mono">. _ -</span></p>
+      </div>
+      <div class="field">
+        <label for="winners">Winners</label>
+        <input id="winners" type="number" min="1" value="1">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="csv">Participants (CSV)</label>
+      <textarea id="csv" placeholder="username&#10;@alice&#10;bob&#10;charlie"></textarea>
+      <div class="row" style="margin-top:8px">
+        <input id="csvFile" type="file" accept=".csv,text/csv" style="width:auto">
+        <span class="hint" id="csvCount"></span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label for="block">Bitcoin block height</label>
+        <input id="block" type="number" min="1" placeholder="912144">
+        <p class="hint">A future block; its hash is the randomness. Fixed before it exists.</p>
+      </div>
+      <div class="field">
+        <label for="tz">Timezone</label>
+        <input id="tz" value="UTC">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="when">Scheduled draw time (human-facing)</label>
+      <input id="when" type="datetime-local">
+    </div>
+
+    <div class="row" style="justify-content:space-between">
+      <div class="check">
+        <input id="ots" type="checkbox">
+        <label for="ots">OpenTimestamp the commitment (needs network)</label>
+      </div>
+      <button id="create">Commit giveaway</button>
+    </div>
+    <div id="createMsg" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Giveaways</h2>
+    <div id="list"><p class="empty">Loading…</p></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var listEl = $("list");
+
+  function shorten(h) { return h ? h.slice(0, 10) + "…" + h.slice(-6) : ""; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) {
+    return { "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;" }[c]; }); }
+
+  async function api(method, path, body) {
+    var res = await fetch(path, {
+      method: method,
+      headers: body ? { "content-type": "application/json" } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok) throw new Error(data.error || (method + " " + path + " failed"));
+    return data;
+  }
+
+  // live participant count preview
+  function countParticipants(text) {
+    var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+    if (lines.length === 0) return 0;
+    return Math.max(0, lines.length - 1); // minus header row
+  }
+  function updateCount() {
+    var n = countParticipants($("csv").value);
+    $("csvCount").textContent = n ? (n + " row" + (n === 1 ? "" : "s") + " (before dedup)") : "";
+  }
+  $("csv").addEventListener("input", updateCount);
+  $("csvFile").addEventListener("change", function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () { $("csv").value = r.result; updateCount(); };
+    r.readAsText(f);
+  });
+
+  function renderList(items) {
+    if (!items.length) { listEl.innerHTML = '<p class="empty">No giveaways yet.</p>'; return; }
+    listEl.innerHTML = "";
+    items.forEach(function (g) {
+      var div = document.createElement("div");
+      div.className = "g";
+      var winners = g.winners
+        ? '<ul class="winners">' + g.winners.map(function (w, i) {
+            return '<li><span class="rank">' + (i + 1) + "</span>@" + esc(w.username) +
+              ' <span class="meta">entry #' + w.entry + "</span></li>";
+          }).join("") + "</ul>"
+        : "";
+      div.innerHTML =
+        '<div class="g-top">' +
+          '<span class="g-id">' + esc(g.giveaway_id) + "</span>" +
+          '<span class="pill ' + (g.drawn ? "done" : "") + '">' + (g.drawn ? "Drawn" : "Committed") + "</span>" +
+        "</div>" +
+        '<p class="meta">' + g.participant_count + " participants · " + g.winner_count +
+          " winner" + (g.winner_count === 1 ? "" : "s") + " · block #" + g.block_height +
+          (g.has_ots ? " · OTS" : "") + "</p>" +
+        '<p class="meta">commitment <span class="mono">' + shorten(g.commitment) + "</span></p>" +
+        winners +
+        "<hr>" +
+        '<div class="row">' +
+          (g.drawn ? "" : '<button class="draw" data-id="' + esc(g.giveaway_id) + '">Draw winners</button>') +
+          '<a class="ghost-link" href="/verify?g=' + encodeURIComponent(g.giveaway_id) + '">' +
+            '<button class="ghost" type="button">Verify</button></a>' +
+          '<span class="drawMsg meta"></span>' +
+        "</div>";
+      listEl.appendChild(div);
+
+      var drawBtn = div.querySelector(".draw");
+      if (drawBtn) {
+        drawBtn.addEventListener("click", function () { doDraw(g.giveaway_id, div); });
+      }
+    });
+  }
+
+  async function doDraw(id, div) {
+    var msg = div.querySelector(".drawMsg");
+    var btn = div.querySelector(".draw");
+    btn.disabled = true; msg.textContent = "Fetching Bitcoin block…"; msg.className = "drawMsg meta";
+    try {
+      await api("POST", "/api/giveaways/" + encodeURIComponent(id) + "/draw", {});
+      await refresh();
+    } catch (e) {
+      // offer manual block hash if the fetch failed
+      var hash = prompt(e.message + "\n\nEnter the block hash manually (64 hex chars):");
+      if (hash) {
+        try {
+          await api("POST", "/api/giveaways/" + encodeURIComponent(id) + "/draw", { block_hash: hash.trim() });
+          await refresh();
+          return;
+        } catch (e2) { msg.textContent = e2.message; msg.className = "drawMsg msg err"; }
+      } else {
+        msg.textContent = e.message; msg.className = "drawMsg msg err";
+      }
+      btn.disabled = false;
+    }
+  }
+
+  async function refresh() {
+    try {
+      var data = await api("GET", "/api/giveaways");
+      renderList(data.giveaways.sort(function (a, b) {
+        return a.giveaway_id < b.giveaway_id ? -1 : 1;
+      }));
+    } catch (e) {
+      listEl.innerHTML = '<p class="msg err">' + esc(e.message) + "</p>";
+    }
+  }
+
+  $("create").addEventListener("click", async function () {
+    var msg = $("createMsg");
+    var whenRaw = $("when").value;
+    var body = {
+      giveaway_id: $("id").value.trim(),
+      csv: $("csv").value,
+      winner_count: parseInt($("winners").value, 10),
+      block_height: parseInt($("block").value, 10),
+      timezone: $("tz").value.trim() || "UTC",
+      scheduled_at: whenRaw ? new Date(whenRaw).toISOString() : undefined,
+      ots: $("ots").checked,
+    };
+    $("create").disabled = true; msg.textContent = "Committing…"; msg.className = "msg";
+    try {
+      var g = await api("POST", "/api/giveaways", body);
+      msg.className = "msg ok";
+      msg.textContent = "Committed " + g.giveaway_id + " — commitment " + shorten(g.commitment) +
+        (g.ots_stamped ? " (OTS stamped)" : "");
+      $("id").value = ""; $("csv").value = ""; $("block").value = ""; updateCount();
+      await refresh();
+    } catch (e) {
+      msg.className = "msg err"; msg.textContent = e.message;
+    } finally {
+      $("create").disabled = false;
+    }
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

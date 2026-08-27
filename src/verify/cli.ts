@@ -71,7 +71,8 @@ async function tryVerifyOts(
   otsPath: string,
 ): Promise<OtsInput | null> {
   try {
-    const mod: any = await import("opentimestamps").catch(() => null);
+    const pkg = "opentimestamps";
+    const mod: any = await import(/* @vite-ignore */ pkg).catch(() => null);
     if (!mod) return { bitcoinVerified: false, status: "opentimestamps not installed (skipped)" };
     const ots = mod.default ?? mod;
     const { DetachedTimestampFile, Ops } = ots;
