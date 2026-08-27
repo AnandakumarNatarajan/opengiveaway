@@ -1,0 +1,36 @@
+{
+  "name": "opengiveaway",
+  "version": "0.1.0",
+  "description": "Self-hostable, cryptographically verifiable giveaway system. Commit the giveaway state, anchor it to Bitcoin via OpenTimestamps, then draw winners from predetermined Bitcoin block randomness.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "opengiveaway": "./dist/cli/index.js"
+  },
+  "exports": {
+    ".": "./dist/protocol/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "cli": "tsx src/cli/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "csv-parse": "^5.5.6"
+  },
+  "optionalDependencies": {
+    "opentimestamps": "^0.4.9"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
