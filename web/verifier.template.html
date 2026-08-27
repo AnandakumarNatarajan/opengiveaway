@@ -4,85 +4,147 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>OpenGiveaway Verifier</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%232d5bd7'/%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' stroke='white' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='16' y2='16' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%234f46e5'/%3E%3Cstop offset='1' stop-color='%23db2777'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='16' height='16' rx='4' fill='url(%23g)'/%3E%3Cpath d='M4 8.4l2.6 2.6L12 5.4' stroke='white' stroke-width='1.7' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 <style>
   :root {
-    --bg: #f6f7f9; --card: #ffffff; --fg: #1a1d21; --muted: #5c6773;
-    --border: #e2e6ea; --pass: #1a7f4b; --fail: #c62828; --accent: #2d5bd7;
-    --badge: #eef2ff;
+    --bg:#f5f6fb; --bg-soft:#eef0f8; --card:#ffffff; --fg:#161a2b; --muted:#5e6785;
+    --border:#e6e8f2; --field:#f9fafe; --ring:rgba(99,102,241,.35);
+    --brand-1:#4f46e5; --brand-2:#7c3aed; --brand-3:#db2777;
+    --accent:#5b54e6; --accent-ink:#4c46d6;
+    --good:#15935a; --good-bg:#e7f7ee; --bad:#d32f2f; --bad-bg:#fdecec;
+    --badge:#eef0ff; --shadow:0 1px 2px rgba(20,24,50,.04),0 8px 24px -12px rgba(20,24,50,.18);
+    --shadow-lg:0 2px 6px rgba(20,24,50,.06),0 24px 60px -24px rgba(20,24,50,.30);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0f1216; --card: #171b21; --fg: #e6e9ee; --muted: #9aa4b0;
-      --border: #262c34; --pass: #4ccb86; --fail: #ff6b6b; --accent: #6d95ff;
-      --badge: #1e2536;
+      --bg:#0b0d14; --bg-soft:#0f121c; --card:#141826; --fg:#e9ebf5; --muted:#9aa2c0;
+      --border:#242a3d; --field:#0f121d; --ring:rgba(124,124,255,.4);
+      --accent:#8b87ff; --accent-ink:#a5a1ff;
+      --good:#43d287; --good-bg:#122a1e; --bad:#ff7a7a; --bad-bg:#2a1517;
+      --badge:#1c2138; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -16px rgba(0,0,0,.7);
+      --shadow-lg:0 2px 8px rgba(0,0,0,.5),0 30px 70px -30px rgba(0,0,0,.8);
     }
   }
-  * { box-sizing: border-box; }
+  * { box-sizing:border-box; }
   body {
-    margin: 0; background: var(--bg); color: var(--fg);
-    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin:0; color:var(--fg); background:var(--bg);
+    background-image:
+      radial-gradient(1000px 460px at 88% -10%, color-mix(in srgb,var(--brand-3) 12%,transparent), transparent 60%),
+      radial-gradient(900px 420px at -5% 0%, color-mix(in srgb,var(--brand-1) 12%,transparent), transparent 55%);
+    background-attachment:fixed;
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
   }
-  .wrap { max-width: 820px; margin: 0 auto; padding: 24px 16px 64px; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .sub { color: var(--muted); margin: 0 0 24px; }
-  .card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 18px; margin: 0 0 16px;
-  }
-  .card h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .04em;
-    color: var(--muted); margin: 0 0 12px; }
-  button {
-    font: inherit; background: var(--accent); color: #fff; border: 0;
-    padding: 9px 16px; border-radius: 8px; cursor: pointer;
-  }
-  button.secondary { background: transparent; color: var(--accent);
-    border: 1px solid var(--border); }
-  button:disabled { opacity: .5; cursor: default; }
-  input[type=text] {
-    font: inherit; padding: 9px 12px; border: 1px solid var(--border);
-    border-radius: 8px; background: var(--bg); color: var(--fg); width: 100%;
-  }
-  label.file { display: inline-flex; align-items: center; gap: 8px;
-    margin: 4px 12px 4px 0; color: var(--muted); font-size: 13px; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .check { display: flex; align-items: baseline; gap: 8px; padding: 5px 0;
-    border-bottom: 1px dashed var(--border); }
-  .check:last-child { border-bottom: 0; }
-  .tag { font-weight: 700; font-size: 12px; letter-spacing: .05em;
-    padding: 1px 6px; border-radius: 5px; }
-  .tag.pass { color: var(--pass); } .tag.fail { color: var(--fail); }
-  .detail { color: var(--muted); font-size: 13px; word-break: break-all; }
-  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12.5px; word-break: break-all; }
-  .kv { display: grid; grid-template-columns: 160px 1fr; gap: 4px 12px; }
-  .kv dt { color: var(--muted); } .kv dd { margin: 0; }
-  .winner { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
-  .rank { display: inline-flex; width: 26px; height: 26px; align-items: center;
-    justify-content: center; border-radius: 50%; background: var(--badge);
-    font-weight: 700; font-size: 13px; }
-  .badge { background: var(--badge); color: var(--accent); font-weight: 700;
-    padding: 2px 8px; border-radius: 6px; font-size: 12px; }
-  .banner { padding: 12px 14px; border-radius: 8px; font-weight: 600; }
-  .banner.ok { background: color-mix(in srgb, var(--pass) 15%, transparent); color: var(--pass); }
-  .banner.bad { background: color-mix(in srgb, var(--fail) 15%, transparent); color: var(--fail); }
-  .hidden { display: none; }
-  .note { color: var(--muted); font-size: 13px; }
-  a { color: var(--accent); }
+  a { color:var(--accent-ink); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+
+  .topbar { position:sticky; top:0; z-index:20; backdrop-filter:saturate(1.4) blur(10px);
+    background:color-mix(in srgb,var(--bg) 78%,transparent); border-bottom:1px solid var(--border); }
+  .topbar .inner { max-width:760px; margin:0 auto; padding:12px 20px;
+    display:flex; align-items:center; justify-content:space-between; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:-.01em; color:var(--fg); }
+  .brand:hover { text-decoration:none; }
+  .logo { width:30px; height:30px; border-radius:9px; display:grid; place-items:center;
+    background:linear-gradient(135deg,var(--brand-1),var(--brand-2) 55%,var(--brand-3)); box-shadow:var(--shadow); }
+  .nav a { padding:7px 12px; border-radius:8px; color:var(--muted); font-weight:500; font-size:14px; }
+  .nav a:hover { background:var(--bg-soft); color:var(--fg); text-decoration:none; }
+
+  .wrap { max-width:760px; margin:0 auto; padding:28px 20px 40px; }
+
+  .hero { border-radius:20px; padding:30px 28px; margin-bottom:22px; color:#fff; position:relative; overflow:hidden;
+    background:linear-gradient(135deg,var(--brand-1),var(--brand-2) 52%,var(--brand-3)); box-shadow:var(--shadow-lg); }
+  .hero::after { content:""; position:absolute; inset:0; opacity:.5; pointer-events:none;
+    background:radial-gradient(560px 220px at 100% 0%, rgba(255,255,255,.25), transparent 60%); }
+  .hero-row { display:flex; align-items:center; gap:16px; position:relative; }
+  .shield { width:46px; height:46px; flex:none; border-radius:13px; display:grid; place-items:center;
+    background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.28); }
+  .hero h1 { margin:0 0 4px; font-size:23px; letter-spacing:-.02em; }
+  .hero p { margin:0; color:rgba(255,255,255,.9); max-width:52ch; font-size:14px; }
+
+  .card { background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:22px; box-shadow:var(--shadow); margin:0 0 16px; }
+  .card h2 { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+    margin:0 0 16px; font-weight:700; display:flex; align-items:center; gap:9px; }
+  .step-n { width:20px; height:20px; border-radius:6px; display:inline-grid; place-items:center;
+    background:var(--badge); color:var(--accent-ink); font-size:11px; font-weight:800; letter-spacing:0; }
+
+  button { font:inherit; font-weight:600; color:#fff; border:0; cursor:pointer; border-radius:10px;
+    padding:10px 16px; background:linear-gradient(135deg,var(--brand-1),var(--brand-2)); box-shadow:var(--shadow);
+    transition:filter .12s, transform .05s; }
+  button:hover { filter:brightness(1.06); }
+  button:active { transform:translateY(1px); }
+  button.secondary { background:transparent; color:var(--accent-ink); border:1px solid var(--border); box-shadow:none; }
+  button.secondary:hover { background:var(--bg-soft); filter:none; }
+  input[type=text] { font:inherit; padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+    background:var(--field); color:var(--fg); width:100%; transition:border-color .12s, box-shadow .12s; }
+  input[type=text]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--ring); }
+  label.file { display:inline-flex; align-items:center; gap:8px; margin:4px 14px 4px 0; color:var(--muted); font-size:13px; }
+  label.file input { font-size:12.5px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .divider { display:flex; align-items:center; gap:12px; margin:16px 0; color:var(--muted); font-size:12px; }
+  .divider::before, .divider::after { content:""; flex:1; height:1px; background:var(--border); }
+
+  .check { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+  .check:last-child { border-bottom:0; }
+  .check > span:nth-child(2) { flex:1; }
+  .tag { font-weight:800; font-size:10.5px; letter-spacing:.04em; padding:3px 8px; border-radius:6px; }
+  .tag.pass { color:var(--good); background:var(--good-bg); }
+  .tag.fail { color:var(--bad); background:var(--bad-bg); }
+  .detail { color:var(--muted); font-size:12.5px; word-break:break-all; }
+  .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; word-break:break-all; }
+
+  .kv { display:grid; grid-template-columns:150px 1fr; gap:9px 14px; margin:0; }
+  .kv dt { color:var(--muted); font-size:13px; } .kv dd { margin:0; font-size:13px; }
+  .note { color:var(--muted); font-size:12.5px; }
+
+  .winner { display:flex; align-items:center; gap:11px; padding:7px 0; }
+  .rank { width:26px; height:26px; border-radius:50%; flex:none; display:grid; place-items:center;
+    font-weight:700; font-size:12px; color:#fff; background:linear-gradient(135deg,var(--brand-2),var(--brand-3)); }
+  .badge { background:var(--badge); color:var(--accent-ink); font-weight:800; padding:2px 9px; border-radius:6px;
+    font-size:11px; letter-spacing:.03em; }
+
+  .banner { padding:14px 16px; border-radius:12px; font-weight:600; display:flex; align-items:center; gap:10px; }
+  .banner.ok { background:var(--good-bg); color:var(--good); }
+  .banner.bad { background:var(--bad-bg); color:var(--bad); }
+
+  .hidden { display:none; }
+
+  footer { max-width:760px; margin:0 auto; padding:8px 20px 44px; color:var(--muted); font-size:12.5px; text-align:center; }
 </style>
 </head>
 <body>
+<div class="topbar">
+  <div class="inner">
+    <a class="brand" href="/">
+      <span class="logo">
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none"><path d="M4 8.4l2.6 2.6L12 5.4" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      OpenGiveaway
+    </a>
+    <nav class="nav"><a href="/">← Organizer</a></nav>
+  </div>
+</div>
+
 <div class="wrap">
-  <h1>OpenGiveaway Verifier</h1>
-  <p class="sub">Independently verify a giveaway from its published files. All
-    checks run in your browser — no server is trusted.</p>
+  <section class="hero">
+    <div class="hero-row">
+      <span class="shield">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#fff" stroke-width="1.5"/><path d="M8.5 12l2.4 2.4L16 9.4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <div>
+        <h1>Verify a giveaway</h1>
+        <p>Reproduce the entire result from the published files. Every check runs
+           in your browser — no server is trusted.</p>
+      </div>
+    </div>
+  </section>
 
   <div class="card" id="loader">
-    <h2>1 · Load the giveaway</h2>
-    <div class="row" style="margin-bottom:12px">
+    <h2><span class="step-n">1</span> Load the giveaway</h2>
+    <div class="row">
       <button id="loadServer">Load from this page's server</button>
-      <span class="note">or load files you downloaded:</span>
     </div>
+    <div class="divider">or load files you downloaded</div>
     <div class="row">
       <label class="file">manifest.json <input type="file" id="fM" accept=".json"></label>
       <label class="file">participants.json <input type="file" id="fP" accept=".json"></label>
@@ -98,33 +160,35 @@
     </div>
 
     <div class="card">
-      <h2>2 · Commitment integrity</h2>
+      <h2><span class="step-n">2</span> Commitment integrity</h2>
       <div id="checks"></div>
     </div>
 
     <div class="card">
-      <h2>3 · Giveaway details</h2>
+      <h2><span class="step-n">3</span> Giveaway details</h2>
       <dl class="kv" id="summary"></dl>
-      <p class="note" style="margin:12px 0 0">Commitment (SHA-256 of the canonical manifest):</p>
+      <p class="note" style="margin:16px 0 4px">Commitment (SHA-256 of the canonical manifest):</p>
       <p class="mono" id="commitment"></p>
       <p class="note" id="otsNote"></p>
     </div>
 
     <div class="card" id="winnersCard">
-      <h2>4 · Winners</h2>
+      <h2><span class="step-n">4</span> Winners</h2>
       <div id="winners"></div>
     </div>
 
     <div class="card">
-      <h2>5 · Was I included?</h2>
+      <h2><span class="step-n">5</span> Was I included?</h2>
       <div class="row">
         <input type="text" id="lookup" placeholder="@username" style="flex:1;min-width:200px">
         <button id="lookupBtn" class="secondary">Verify</button>
       </div>
-      <div id="lookupResult" style="margin-top:12px"></div>
+      <div id="lookupResult" style="margin-top:14px"></div>
     </div>
   </div>
 </div>
+
+<footer>Eligibility proof + selection proof · anyone can reproduce this result offline.</footer>
 
 <script>
 /*__BUNDLE__*/
@@ -207,7 +271,7 @@
       d.innerHTML =
         '<span class="tag ' + (c.pass ? "pass" : "fail") + '">' + (c.pass ? "PASS" : "FAIL") + "</span>" +
         "<span>" + c.label + "</span>" +
-        (c.detail ? '<span class="detail">— ' + c.detail + "</span>" : "");
+        (c.detail ? '<span class="detail">' + c.detail + "</span>" : "");
       checks.appendChild(d);
     });
 
@@ -234,12 +298,12 @@
     if (!state.result || !state.result.winners) { card.classList.add("hidden"); return; }
     card.classList.remove("hidden");
     box.innerHTML =
-      '<p class="note">Block #' + state.result.bitcoinBlockHeight +
-      ' hash <span class="mono">' + state.result.bitcoinBlockHash + "</span></p>";
+      '<p class="note" style="margin:0 0 10px">Block #' + state.result.bitcoinBlockHeight +
+      ' · hash <span class="mono">' + state.result.bitcoinBlockHash + "</span></p>";
     state.result.winners.forEach(function (w, i) {
       var d = document.createElement("div"); d.className = "winner";
-      d.innerHTML = '<span class="rank">' + (i + 1) + "</span><span>@" + w.username +
-        ' <span class="note">(entry #' + w.entry + ")</span></span>";
+      d.innerHTML = '<span class="rank">' + (i + 1) + '</span><span><strong>@' + w.username +
+        '</strong> <span class="note">entry #' + w.entry + "</span></span>";
       box.appendChild(d);
     });
   }
@@ -266,7 +330,7 @@
       '<div class="banner ' + (res.proofValid ? "ok" : "bad") + '">' +
       (res.proofValid ? "✓" : "✗") + " @" + p.username + " (entry #" + p.entry + ")" + winnerBadge +
       "</div>" +
-      '<div class="check"><span class="tag ' + (res.proofValid ? "pass" : "fail") + '">' +
+      '<div class="check" style="margin-top:4px"><span class="tag ' + (res.proofValid ? "pass" : "fail") + '">' +
       (res.proofValid ? "PASS" : "FAIL") +
       '</span><span>Merkle inclusion proof recomputes to the committed root</span></div>';
   }
