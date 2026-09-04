@@ -204,15 +204,10 @@
 </script>
 <script>
 (function () {
-  var state = { manifest: null, participantBytes: null, result: null, base: null, id: null };
+  var state = { manifest: null, participantBytes: null, result: null, base: null, slug: null, gid: null };
 
   function el(id) { return document.getElementById(id); }
   function show(id) { el(id).classList.remove("hidden"); }
-
-  function deriveId(base) {
-    var m = base && base.match(/^\/g\/([^/]+)\/$/);
-    return m ? decodeURIComponent(m[1]) : null;
-  }
 
   async function fetchFrom(base, quiet) {
     if (!quiet) el("loadMsg").textContent = "Loading…";
@@ -224,7 +219,7 @@
       state.participantBytes = new Uint8Array(await pRes.arrayBuffer());
       var rRes = await fetch(base + "result.json");
       state.result = rRes.ok ? await rRes.json() : null;
-      state.base = base; state.id = deriveId(base);
+      state.base = base;
       el("loadMsg").textContent = "";
       render();
       loadOts();
@@ -240,8 +235,8 @@
   // opened offline we can only report whether a .ots proof is bundled.
   async function loadOts() {
     try {
-      if (state.id) {
-        var r = await fetch("/api/giveaways/" + encodeURIComponent(state.id) + "/ots");
+      if (state.slug && state.gid) {
+        var r = await fetch("/g/" + encodeURIComponent(state.slug) + "/" + encodeURIComponent(state.gid) + "/ots");
         if (r.ok) { renderOts(await r.json()); return; }
       }
       if (state.base) {
@@ -264,8 +259,7 @@
       html = '<div class="ots attested"><span class="dot"></span>OpenTimestamps · Bitcoin-attested' +
         (when ? ' <span class="note" style="color:inherit">· ' + when + "</span>" : "") + "</div>";
     } else if (o.state === "pending") {
-      html = '<div class="ots pending"><span class="dot"></span>OpenTimestamps · pending — anchored to calendars, not yet mined' +
-        (state.id ? '<button class="secondary" id="otsUp">Upgrade</button>' : "") + "</div>";
+      html = '<div class="ots pending"><span class="dot"></span>OpenTimestamps · pending — anchored to calendars, not yet mined</div>';
     } else if (o.state === "present") {
       html = '<div class="ots"><span class="dot"></span>OpenTimestamps proof bundled — verify with <span class="mono">opengiveaway-verify</span></div>';
     } else if (o.state === "unavailable") {
@@ -276,29 +270,21 @@
       html = '<div class="ots"><span class="dot"></span>Load from a server, or run <span class="mono">opengiveaway-verify</span>, to check the <span class="mono">.ots</span> proof</div>';
     }
     box.innerHTML = html;
-    var up = el("otsUp");
-    if (up) up.addEventListener("click", doUpgrade);
-  }
-
-  async function doUpgrade() {
-    var up = el("otsUp");
-    up.disabled = true; up.textContent = "Upgrading…";
-    try {
-      var r = await fetch("/api/giveaways/" + encodeURIComponent(state.id) + "/ots/upgrade", { method: "POST" });
-      renderOts(await r.json());
-    } catch (e) {
-      up.disabled = false; up.textContent = "Upgrade";
-    }
   }
 
   function fetchServer() { return fetchFrom("./", false); }
 
-  // If opened as /verify?g=<id>, auto-load that giveaway's published artifacts.
+  // If opened as /verify?s=<space>&g=<gid>, auto-load that giveaway's public artifacts.
   async function autoLoad() {
-    var id = new URLSearchParams(location.search).get("g");
-    if (!id) return;
-    el("loadMsg").textContent = "Loading giveaway “" + id + "”…";
-    await fetchFrom("/g/" + encodeURIComponent(id) + "/", false);
+    var p = new URLSearchParams(location.search);
+    var slug = p.get("s"), gid = p.get("g");
+    if (!gid) return;
+    state.slug = slug; state.gid = gid;
+    var base = slug
+      ? "/g/" + encodeURIComponent(slug) + "/" + encodeURIComponent(gid) + "/"
+      : "/g/" + encodeURIComponent(gid) + "/";
+    el("loadMsg").textContent = "Loading giveaway “" + gid + "”…";
+    await fetchFrom(base, false);
   }
 
   function readText(file) {
@@ -319,7 +305,7 @@
       el("loadMsg").textContent = "Provide at least manifest.json and participants.json.";
       return;
     }
-    state.base = null; state.id = null;
+    state.base = null; state.slug = null; state.gid = null;
     render();
     loadOts();
   }

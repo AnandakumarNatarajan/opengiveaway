@@ -433,4 +433,31 @@ program
     startApp({ dataDir: opts.data, port: opts.port, providerUrl: opts.provider });
   });
 
+// ---------------------------------------------------------------------------
+// host — multi-tenant Supabase-backed server (workspaces, auth, public verifier)
+// ---------------------------------------------------------------------------
+program
+  .command("host")
+  .description("Run the multi-tenant Supabase-backed server (Web UI + API + public verifier)")
+  .option("--port <n>", "port", (v) => parseInt(v, 10), parseInt(process.env.PORT ?? "8080", 10))
+  .option("--supabase-url <url>", "Supabase project URL", process.env.SUPABASE_URL)
+  .option("--anon-key <key>", "Supabase anon key", process.env.SUPABASE_ANON_KEY)
+  .option("--provider <url>", "Esplora API base URL", process.env.BITCOIN_PROVIDER_URL ?? "https://mempool.space/api")
+  .action(async (opts) => {
+    if (!opts.supabaseUrl || !opts.anonKey) {
+      console.error(
+        "SUPABASE_URL and SUPABASE_ANON_KEY are required (set in the environment, e.g. `node --env-file=.env`, or pass --supabase-url/--anon-key).",
+      );
+      process.exitCode = 1;
+      return;
+    }
+    const { startTenantApp } = await import("../server/tenant/app.js");
+    startTenantApp({
+      supabaseUrl: opts.supabaseUrl,
+      anonKey: opts.anonKey,
+      providerUrl: opts.provider,
+      port: opts.port,
+    });
+  });
+
 program.parseAsync(process.argv);

@@ -17,10 +17,11 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/web ./web
 
-# Giveaway data is persisted here; mount a volume to keep it across restarts.
-VOLUME ["/data"]
 EXPOSE 8080
 
-# `serve`-ready: organizer UI on 8080, data under /data.
+# Default: multi-tenant server backed by Supabase. Provide SUPABASE_URL,
+# SUPABASE_ANON_KEY (and optionally BITCOIN_PROVIDER_URL, PORT) at runtime.
+# For the single-tenant filesystem mode instead, override the command with:
+#   app --data /data --port 8080   (and mount a volume at /data)
 ENTRYPOINT ["node", "dist/cli/index.js"]
-CMD ["app", "--data", "/data", "--port", "8080"]
+CMD ["host", "--port", "8080"]

@@ -26,300 +26,365 @@
     }
   }
   * { box-sizing:border-box; }
-  html { -webkit-text-size-adjust:100%; }
-  body {
-    margin:0; color:var(--fg); background:var(--bg);
+  body { margin:0; color:var(--fg); background:var(--bg);
     background-image:
       radial-gradient(1100px 500px at 85% -8%, color-mix(in srgb,var(--brand-2) 14%,transparent), transparent 60%),
       radial-gradient(900px 420px at -5% 0%, color-mix(in srgb,var(--brand-1) 12%,transparent), transparent 55%);
     background-attachment:fixed;
-    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    -webkit-font-smoothing:antialiased;
-  }
-  a { color:var(--accent-ink); text-decoration:none; }
-  a:hover { text-decoration:underline; }
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:var(--accent-ink); text-decoration:none; } a:hover { text-decoration:underline; }
 
-  /* top bar */
   .topbar { position:sticky; top:0; z-index:20; backdrop-filter:saturate(1.4) blur(10px);
     background:color-mix(in srgb,var(--bg) 78%,transparent); border-bottom:1px solid var(--border); }
-  .topbar .inner { max-width:960px; margin:0 auto; padding:12px 20px;
-    display:flex; align-items:center; justify-content:space-between; }
+  .topbar .inner { max-width:960px; margin:0 auto; padding:11px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
   .brand { display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:-.01em; color:var(--fg); }
   .brand:hover { text-decoration:none; }
   .logo { width:30px; height:30px; border-radius:9px; display:grid; place-items:center;
     background:linear-gradient(135deg,var(--brand-1),var(--brand-2) 55%,var(--brand-3)); box-shadow:var(--shadow); }
-  .nav { display:flex; gap:6px; align-items:center; }
-  .nav a { padding:7px 12px; border-radius:8px; color:var(--muted); font-weight:500; font-size:14px; }
+  .barright { display:flex; gap:8px; align-items:center; }
+  .barright a, .barright button { font-size:14px; }
+  select, .spacesel { font:inherit; font-size:14px; padding:7px 10px; border:1px solid var(--border); border-radius:8px; background:var(--field); color:var(--fg); }
+  .userchip { font-size:13px; color:var(--muted); max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nav a { padding:7px 12px; border-radius:8px; color:var(--muted); font-weight:500; }
   .nav a:hover { background:var(--bg-soft); color:var(--fg); text-decoration:none; }
-  .nav a.cta { color:#fff; background:linear-gradient(135deg,var(--brand-1),var(--brand-2)); }
-  .nav a.cta:hover { filter:brightness(1.06); }
 
   .wrap { max-width:960px; margin:0 auto; padding:28px 20px 80px; }
 
-  /* hero */
-  .hero { border-radius:20px; padding:34px 30px; margin-bottom:26px; color:#fff; position:relative; overflow:hidden;
+  .hero { border-radius:20px; padding:32px 30px; margin-bottom:24px; color:#fff; position:relative; overflow:hidden;
     background:linear-gradient(135deg,var(--brand-1),var(--brand-2) 52%,var(--brand-3)); box-shadow:var(--shadow-lg); }
   .hero::after { content:""; position:absolute; inset:0; opacity:.5; pointer-events:none;
     background:radial-gradient(600px 240px at 100% 0%, rgba(255,255,255,.25), transparent 60%); }
-  .hero h1 { margin:0 0 8px; font-size:27px; line-height:1.15; letter-spacing:-.02em; }
+  .hero h1 { margin:0 0 8px; font-size:26px; line-height:1.15; letter-spacing:-.02em; }
   .hero p { margin:0; max-width:46ch; color:rgba(255,255,255,.9); }
   .badges { display:flex; gap:8px; flex-wrap:wrap; margin-top:18px; position:relative; }
   .badge-chip { display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600;
-    padding:6px 11px; border-radius:999px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.22);
-    color:#fff; }
+    padding:6px 11px; border-radius:999px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.22); color:#fff; }
   .badge-chip svg { width:14px; height:14px; }
 
   .layout { display:grid; grid-template-columns:1fr; gap:20px; }
   @media (min-width:820px) { .layout { grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr); align-items:start; } }
-
-  .card { background:var(--card); border:1px solid var(--border); border-radius:16px;
-    padding:22px; box-shadow:var(--shadow); }
-  .card + .card { margin-top:20px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px; box-shadow:var(--shadow); }
   .card-head { display:flex; align-items:center; gap:10px; margin:0 0 18px; }
-  .card-head .ic { width:30px; height:30px; border-radius:9px; display:grid; place-items:center;
-    background:var(--badge); color:var(--accent-ink); flex:none; }
+  .card-head .ic { width:30px; height:30px; border-radius:9px; display:grid; place-items:center; background:var(--badge); color:var(--accent-ink); flex:none; }
   .card-head .ic svg { width:17px; height:17px; }
   .card-head h2 { font-size:15px; margin:0; font-weight:650; letter-spacing:-.01em; }
   .card-head .desc { font-size:12.5px; color:var(--muted); margin:2px 0 0; font-weight:400; }
 
   label { display:block; font-size:12.5px; font-weight:600; color:var(--fg); margin:0 0 6px; }
-  input, textarea, select { font:inherit; width:100%; padding:10px 12px; background:var(--field);
-    color:var(--fg); border:1px solid var(--border); border-radius:10px; transition:border-color .12s, box-shadow .12s; }
+  input, textarea { font:inherit; width:100%; padding:10px 12px; background:var(--field); color:var(--fg);
+    border:1px solid var(--border); border-radius:10px; transition:border-color .12s, box-shadow .12s; }
   input:focus, textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--ring); }
-  input::placeholder, textarea::placeholder { color:color-mix(in srgb,var(--muted) 75%,transparent); }
   textarea { resize:vertical; min-height:104px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .field { margin-bottom:16px; }
   .hint { font-size:12px; color:var(--muted); margin:6px 0 0; }
   .filepick { display:flex; align-items:center; gap:10px; margin-top:9px; flex-wrap:wrap; }
   .filepick input[type=file] { width:auto; font-size:12.5px; padding:7px 10px; }
-  .check { display:flex; align-items:center; gap:9px; }
-  .check input { width:auto; accent-color:var(--accent); }
+  .check { display:flex; align-items:center; gap:9px; } .check input { width:auto; accent-color:var(--accent); }
   .check label { margin:0; font-weight:500; color:var(--muted); }
 
-  button { font:inherit; font-weight:600; color:#fff; border:0; cursor:pointer; border-radius:10px;
-    padding:11px 18px; background:linear-gradient(135deg,var(--brand-1),var(--brand-2)); box-shadow:var(--shadow);
-    transition:filter .12s, transform .05s; }
-  button:hover { filter:brightness(1.06); }
-  button:active { transform:translateY(1px); }
+  button { font:inherit; font-weight:600; color:#fff; border:0; cursor:pointer; border-radius:10px; padding:11px 18px;
+    background:linear-gradient(135deg,var(--brand-1),var(--brand-2)); box-shadow:var(--shadow); transition:filter .12s, transform .05s; }
+  button:hover { filter:brightness(1.06); } button:active { transform:translateY(1px); }
   button:disabled { opacity:.55; cursor:default; filter:none; }
   button.ghost { background:transparent; color:var(--accent-ink); border:1px solid var(--border); box-shadow:none; padding:8px 14px; }
   button.ghost:hover { background:var(--bg-soft); filter:none; }
+  button.sm { padding:7px 12px; font-size:13px; }
   .actions { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:4px; }
 
-  .msg { font-size:13px; margin-top:14px; display:none; }
-  .msg.show { display:block; }
+  .msg { font-size:13px; margin-top:14px; display:none; } .msg.show { display:block; }
   .msg.err { color:var(--bad); } .msg.ok { color:var(--good); }
   .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; word-break:break-all; }
 
-  /* giveaway list */
   .glist { display:flex; flex-direction:column; gap:14px; }
-  .g { border:1px solid var(--border); border-radius:14px; padding:16px 17px; background:var(--card);
-    transition:border-color .12s, box-shadow .12s; }
+  .g { border:1px solid var(--border); border-radius:14px; padding:16px 17px; background:var(--card); transition:border-color .12s, box-shadow .12s; }
   .g:hover { border-color:color-mix(in srgb,var(--accent) 45%,var(--border)); box-shadow:var(--shadow); }
   .g-top { display:flex; align-items:center; gap:12px; }
-  .g-ava { width:38px; height:38px; border-radius:11px; flex:none; display:grid; place-items:center; color:#fff;
-    font-weight:700; font-size:15px; background:linear-gradient(135deg,var(--brand-1),var(--brand-3)); }
-  .g-id { font-weight:650; letter-spacing:-.01em; }
-  .g-sub { font-size:12.5px; color:var(--muted); margin-top:1px; }
-  .pill { margin-left:auto; font-size:11.5px; padding:4px 10px; border-radius:999px; font-weight:700;
-    background:var(--badge); color:var(--accent-ink); display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
-  .pill.done { color:var(--good); background:var(--good-bg); }
-  .pill .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .g-ava { width:38px; height:38px; border-radius:11px; flex:none; display:grid; place-items:center; color:#fff; font-weight:700; font-size:15px;
+    background:linear-gradient(135deg,var(--brand-1),var(--brand-3)); }
+  .g-id { font-weight:650; letter-spacing:-.01em; } .g-sub { font-size:12.5px; color:var(--muted); margin-top:1px; }
+  .pill { margin-left:auto; font-size:11.5px; padding:4px 10px; border-radius:999px; font-weight:700; background:var(--badge); color:var(--accent-ink);
+    display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+  .pill.done { color:var(--good); background:var(--good-bg); } .pill .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
   .g-meta { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
-  .tag { font-size:12px; color:var(--muted); background:var(--bg-soft); border:1px solid var(--border);
-    padding:3px 9px; border-radius:8px; }
+  .tag { font-size:12px; color:var(--muted); background:var(--bg-soft); border:1px solid var(--border); padding:3px 9px; border-radius:8px; }
   .tag.good { color:var(--good); background:var(--good-bg); border-color:transparent; font-weight:600; }
   .tag.pending { color:var(--warn); border-color:color-mix(in srgb,var(--warn) 40%,var(--border)); }
   .commit { margin-top:10px; font-size:12px; color:var(--muted); }
   .winners { margin:12px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px; }
   .winners li { display:flex; align-items:center; gap:10px; }
-  .rank { width:24px; height:24px; border-radius:50%; flex:none; display:grid; place-items:center;
-    font-weight:700; font-size:12px; color:#fff; background:linear-gradient(135deg,var(--brand-2),var(--brand-3)); }
+  .rank { width:24px; height:24px; border-radius:50%; flex:none; display:grid; place-items:center; font-weight:700; font-size:12px; color:#fff;
+    background:linear-gradient(135deg,var(--brand-2),var(--brand-3)); }
   .wname { font-weight:600; } .wentry { color:var(--muted); font-size:12.5px; }
-  .g-foot { display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-top:14px;
-    padding-top:14px; border-top:1px solid var(--border); }
-  .drawMsg { font-size:12.5px; color:var(--muted); }
-  .drawMsg.err { color:var(--bad); }
+  .g-foot { display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+  .drawMsg { font-size:12.5px; color:var(--muted); } .drawMsg.err { color:var(--bad); }
+  .empty { text-align:center; padding:26px 10px; color:var(--muted); } .empty svg { width:34px; height:34px; opacity:.5; margin-bottom:10px; }
 
-  .empty { text-align:center; padding:26px 10px; color:var(--muted); }
-  .empty svg { width:34px; height:34px; opacity:.5; margin-bottom:10px; }
-
+  /* auth */
+  .auth-wrap { max-width:420px; margin:8vh auto 0; padding:0 20px; }
+  .auth-card { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:28px; box-shadow:var(--shadow-lg); }
+  .auth-logo { width:46px; height:46px; border-radius:13px; display:grid; place-items:center; margin:0 auto 14px;
+    background:linear-gradient(135deg,var(--brand-1),var(--brand-2) 55%,var(--brand-3)); box-shadow:var(--shadow); }
+  .auth-card h1 { text-align:center; font-size:20px; margin:0 0 4px; letter-spacing:-.01em; }
+  .auth-card .sub { text-align:center; color:var(--muted); font-size:13px; margin:0 0 22px; }
+  .auth-tabs { display:flex; gap:6px; background:var(--bg-soft); padding:4px; border-radius:10px; margin-bottom:18px; }
+  .auth-tabs button { flex:1; background:transparent; color:var(--muted); box-shadow:none; padding:8px; font-size:13.5px; }
+  .auth-tabs button.on { background:var(--card); color:var(--fg); box-shadow:var(--shadow); }
+  .auth-card button.full { width:100%; margin-top:4px; }
+  .link-btn { background:none; box-shadow:none; color:var(--accent-ink); padding:0; font-weight:500; font-size:13px; }
+  .authfoot { text-align:center; margin-top:16px; color:var(--muted); font-size:12.5px; }
   footer { max-width:960px; margin:0 auto; padding:28px 20px 40px; color:var(--muted); font-size:12.5px;
     display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
-  footer .steps { display:flex; gap:6px; flex-wrap:wrap; }
-  footer .step { color:var(--muted); }
+  footer .steps .step { color:var(--muted); }
+  [hidden] { display:none !important; }
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="inner">
-    <a class="brand" href="/">
-      <span class="logo">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none"><path d="M4 8.4l2.6 2.6L12 5.4" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-      OpenGiveaway
-    </a>
-    <nav class="nav">
-      <a href="/">Organizer</a>
-      <a class="cta" href="/verify">Public verifier</a>
-    </nav>
-  </div>
-</div>
 
-<div class="wrap">
-  <section class="hero">
-    <h1>Provably fair giveaways</h1>
-    <p>Commit the participant set, anchor it to Bitcoin before the draw, and pick
-       winners from public randomness anyone can re-check.</p>
-    <div class="badges">
-      <span class="badge-chip"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1l6 3v4c0 3.5-2.5 6-6 7-3.5-1-6-3.5-6-7V4l6-3z" stroke="#fff" stroke-width="1.3"/></svg>Merkle commitment</span>
-      <span class="badge-chip"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="#fff" stroke-width="1.3"/><path d="M8 4.5V8l2.3 1.4" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg>OpenTimestamps</span>
-      <span class="badge-chip"><svg viewBox="0 0 16 16" fill="none"><path d="M5.5 2v12M8 2v12M10.5 2v12" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/><path d="M3.5 5h9M3.5 11h9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg>Bitcoin randomness</span>
-    </div>
-  </section>
-
-  <div class="layout">
-    <div>
-      <div class="card">
-        <div class="card-head">
-          <span class="ic"><svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
-          <div>
-            <h2>New giveaway</h2>
-            <p class="desc">Freeze participants and create the commitment.</p>
-          </div>
-        </div>
-
-        <div class="grid2">
-          <div class="field">
-            <label for="id">Giveaway ID</label>
-            <input id="id" placeholder="giveaway-001" autocomplete="off">
-            <p class="hint">Letters, numbers, <span class="mono">. _ -</span></p>
-          </div>
-          <div class="field">
-            <label for="winners">Winners</label>
-            <input id="winners" type="number" min="1" value="1">
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="csv">Participants (CSV)</label>
-          <textarea id="csv" placeholder="username&#10;@alice&#10;bob&#10;charlie"></textarea>
-          <div class="filepick">
-            <input id="csvFile" type="file" accept=".csv,text/csv">
-            <span class="hint" id="csvCount"></span>
-          </div>
-        </div>
-
-        <div class="grid2">
-          <div class="field">
-            <label for="block">Bitcoin block height</label>
-            <input id="block" type="number" min="1" placeholder="912144">
-            <p class="hint">A future block; fixed before it exists.</p>
-          </div>
-          <div class="field">
-            <label for="tz">Timezone</label>
-            <input id="tz" value="UTC">
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="when">Scheduled draw time <span style="font-weight:400;color:var(--muted)">(human-facing)</span></label>
-          <input id="when" type="datetime-local">
-        </div>
-
-        <div class="actions">
-          <div class="check">
-            <input id="ots" type="checkbox">
-            <label for="ots">OpenTimestamp the commitment</label>
-          </div>
-          <button id="create">Commit giveaway</button>
-        </div>
-        <div id="createMsg" class="msg"></div>
+<!-- ===== Auth gate ===== -->
+<div id="authView" hidden>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo"><svg width="24" height="24" viewBox="0 0 16 16" fill="none"><path d="M4 8.4l2.6 2.6L12 5.4" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h1>OpenGiveaway</h1>
+      <p class="sub">Sign in to run provably fair giveaways.</p>
+      <div class="auth-tabs">
+        <button id="tabIn" class="on" type="button">Sign in</button>
+        <button id="tabUp" type="button">Create account</button>
       </div>
-    </div>
-
-    <div>
-      <div class="card">
-        <div class="card-head">
-          <span class="ic"><svg viewBox="0 0 16 16" fill="none"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
-          <div>
-            <h2>Giveaways</h2>
-            <p class="desc">Commit, draw, and share verification.</p>
-          </div>
-        </div>
-        <div id="list" class="glist"><p class="empty">Loading…</p></div>
+      <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="field"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <button id="authBtn" class="full" type="button">Sign in</button>
+      <div class="authfoot">
+        <button id="magicBtn" class="link-btn" type="button">Email me a magic link instead</button>
       </div>
+      <div id="authMsg" class="msg" style="text-align:center"></div>
     </div>
   </div>
 </div>
 
-<footer>
-  <span>OpenGiveaway · self-hosted, verifiable draws</span>
-  <span class="steps">
-    <span class="step">Commit</span>·<span class="step">Anchor</span>·<span class="step">Draw</span>·<span class="step">Verify</span>
-  </span>
-</footer>
+<!-- ===== App ===== -->
+<div id="appView" hidden>
+  <div class="topbar">
+    <div class="inner">
+      <a class="brand" href="/">
+        <span class="logo"><svg width="17" height="17" viewBox="0 0 16 16" fill="none"><path d="M4 8.4l2.6 2.6L12 5.4" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        OpenGiveaway
+      </a>
+      <div class="barright">
+        <select id="spaceSel" class="spacesel" title="Workspace"></select>
+        <button id="newSpaceBtn" class="ghost sm" type="button">+ Space</button>
+        <span class="nav"><a href="/verify" target="_blank">Verifier</a></span>
+        <span class="userchip" id="userChip"></span>
+        <button id="signOutBtn" class="ghost sm" type="button">Sign out</button>
+      </div>
+    </div>
+  </div>
 
+  <div class="wrap">
+    <section class="hero">
+      <h1>Provably fair giveaways</h1>
+      <p>Commit the participant set, anchor it to Bitcoin before the draw, and pick
+         winners from public randomness anyone can re-check.</p>
+      <div class="badges">
+        <span class="badge-chip"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1l6 3v4c0 3.5-2.5 6-6 7-3.5-1-6-3.5-6-7V4l6-3z" stroke="#fff" stroke-width="1.3"/></svg>Merkle commitment</span>
+        <span class="badge-chip"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="#fff" stroke-width="1.3"/><path d="M8 4.5V8l2.3 1.4" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg>OpenTimestamps</span>
+        <span class="badge-chip"><svg viewBox="0 0 16 16" fill="none"><path d="M5.5 2v12M8 2v12M10.5 2v12" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/><path d="M3.5 5h9M3.5 11h9" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg>Bitcoin randomness</span>
+      </div>
+    </section>
+
+    <div class="layout">
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <span class="ic"><svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            <div><h2>New giveaway</h2><p class="desc" id="spaceDesc">Freeze participants and create the commitment.</p></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label for="id">Giveaway ID</label><input id="id" placeholder="giveaway-001" autocomplete="off"><p class="hint">Letters, numbers, <span class="mono">. _ -</span></p></div>
+            <div class="field"><label for="winners">Winners</label><input id="winners" type="number" min="1" value="1"></div>
+          </div>
+          <div class="field">
+            <label for="csv">Participants (CSV)</label>
+            <textarea id="csv" placeholder="username&#10;@alice&#10;bob&#10;charlie"></textarea>
+            <div class="filepick"><input id="csvFile" type="file" accept=".csv,text/csv"><span class="hint" id="csvCount"></span></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label for="block">Bitcoin block height</label><input id="block" type="number" min="1" placeholder="912144"><p class="hint">A future block; fixed before it exists.</p></div>
+            <div class="field"><label for="tz">Timezone</label><input id="tz" value="UTC"></div>
+          </div>
+          <div class="field"><label for="when">Scheduled draw time <span style="font-weight:400;color:var(--muted)">(human-facing)</span></label><input id="when" type="datetime-local"></div>
+          <div class="actions">
+            <div class="check"><input id="ots" type="checkbox"><label for="ots">OpenTimestamp the commitment</label></div>
+            <button id="create">Commit giveaway</button>
+          </div>
+          <div id="createMsg" class="msg"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <span class="ic"><svg viewBox="0 0 16 16" fill="none"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            <div><h2>Giveaways</h2><p class="desc">Commit, draw, and share verification.</p></div>
+          </div>
+          <div id="list" class="glist"><p class="empty">Loading…</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>OpenGiveaway · self-hosted, verifiable draws</span>
+    <span class="steps"><span class="step">Commit</span>·<span class="step">Anchor</span>·<span class="step">Draw</span>·<span class="step">Verify</span></span>
+  </footer>
+</div>
+
+<div id="bootMsg" style="max-width:420px;margin:12vh auto;text-align:center;color:var(--muted);padding:0 20px"></div>
+
+<script src="/vendor/supabase.js"></script>
+<script src="/config.js"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var listEl = $("list");
-
-  function shorten(h) { return h ? h.slice(0, 10) + "…" + h.slice(-6) : ""; }
-  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) {
-    return { "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;" }[c]; }); }
-  function initial(id) { return (id || "?").replace(/[^a-z0-9]/gi, "").charAt(0).toUpperCase() || "#"; }
-  function setMsg(el, text, kind) {
-    el.textContent = text;
-    el.className = "msg show" + (kind ? " " + kind : "");
+  var cfg = window.OG_CONFIG || {};
+  if (!window.supabase || !cfg.SUPABASE_URL) {
+    $("bootMsg").textContent = "Supabase is not configured. Set SUPABASE_URL / SUPABASE_ANON_KEY and reload.";
+    return;
   }
+  var sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+  var session = null, spaces = [], current = null, mode = "in";
 
-  async function api(method, path, body) {
-    var res = await fetch(path, {
-      method: method,
-      headers: body ? { "content-type": "application/json" } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+  function shorten(h) { return h ? h.slice(0,10)+"…"+h.slice(-6) : ""; }
+  function initial(id) { return (id||"?").replace(/[^a-z0-9]/gi,"").charAt(0).toUpperCase() || "#"; }
+  function setMsg(el, text, kind) { el.textContent = text; el.className = "msg show" + (kind?" "+kind:""); }
+
+  async function authFetch(path, opts) {
+    opts = opts || {};
+    var headers = Object.assign({}, opts.headers || {});
+    if (session) headers["Authorization"] = "Bearer " + session.access_token;
+    if (opts.body) headers["content-type"] = "application/json";
+    var res = await fetch(path, Object.assign({}, opts, { headers: headers }));
     var data = await res.json().catch(function () { return {}; });
-    if (!res.ok) throw new Error(data.error || (method + " " + path + " failed"));
+    if (!res.ok) throw new Error(data.error || (path + " failed"));
     return data;
   }
 
+  // ---- auth ----
+  $("tabIn").addEventListener("click", function () { mode = "in"; $("tabIn").classList.add("on"); $("tabUp").classList.remove("on"); $("authBtn").textContent = "Sign in"; });
+  $("tabUp").addEventListener("click", function () { mode = "up"; $("tabUp").classList.add("on"); $("tabIn").classList.remove("on"); $("authBtn").textContent = "Create account"; });
+
+  $("authBtn").addEventListener("click", async function () {
+    var email = $("email").value.trim(), pw = $("pw").value;
+    if (!email || !pw) { setMsg($("authMsg"), "Enter your email and password.", "err"); return; }
+    $("authBtn").disabled = true; setMsg($("authMsg"), "Working…", "");
+    try {
+      var r = mode === "up"
+        ? await sb.auth.signUp({ email: email, password: pw })
+        : await sb.auth.signInWithPassword({ email: email, password: pw });
+      if (r.error) throw r.error;
+      if (mode === "up" && !r.data.session) setMsg($("authMsg"), "Check your email to confirm your account.", "ok");
+    } catch (e) { setMsg($("authMsg"), e.message || String(e), "err"); }
+    finally { $("authBtn").disabled = false; }
+  });
+
+  $("magicBtn").addEventListener("click", async function () {
+    var email = $("email").value.trim();
+    if (!email) { setMsg($("authMsg"), "Enter your email first.", "err"); return; }
+    try {
+      var r = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.origin } });
+      if (r.error) throw r.error;
+      setMsg($("authMsg"), "Magic link sent — check your email.", "ok");
+    } catch (e) { setMsg($("authMsg"), e.message || String(e), "err"); }
+  });
+
+  $("signOutBtn").addEventListener("click", function () { sb.auth.signOut(); });
+
+  sb.auth.onAuthStateChange(function (_e, s) { session = s; renderAuth(); });
+
+  async function renderAuth() {
+    var authed = !!session;
+    $("bootMsg").textContent = "";
+    $("authView").hidden = authed;
+    $("appView").hidden = !authed;
+    if (!authed) return;
+    $("userChip").textContent = session.user && session.user.email ? session.user.email : "";
+    await loadSpaces();
+  }
+
+  // ---- spaces ----
+  async function loadSpaces() {
+    var r = await sb.from("spaces").select("*").order("created_at", { ascending: true });
+    if (r.error) { $("list").innerHTML = '<p class="empty">' + esc(r.error.message) + "</p>"; return; }
+    spaces = r.data || [];
+    var sel = $("spaceSel"); sel.innerHTML = "";
+    if (!spaces.length) {
+      current = null;
+      sel.innerHTML = '<option>No workspaces</option>';
+      $("list").innerHTML = '<div class="empty"><div>Create your first workspace to begin.</div></div>';
+      $("spaceDesc").textContent = "Create a workspace (top right) to start.";
+      return;
+    }
+    var remembered = localStorage.getItem("og_space");
+    spaces.forEach(function (s) {
+      var o = document.createElement("option"); o.value = s.id; o.textContent = s.name + " (" + s.slug + ")";
+      sel.appendChild(o);
+    });
+    current = spaces.find(function (s) { return s.id === remembered; }) || spaces[0];
+    sel.value = current.id;
+    $("spaceDesc").textContent = "Workspace: " + current.name;
+    await refresh();
+  }
+
+  $("spaceSel").addEventListener("change", function (e) {
+    current = spaces.find(function (s) { return s.id === e.target.value; }) || null;
+    if (current) { localStorage.setItem("og_space", current.id); $("spaceDesc").textContent = "Workspace: " + current.name; refresh(); }
+  });
+
+  $("newSpaceBtn").addEventListener("click", async function () {
+    var name = prompt("Workspace name (e.g. Acme Marketing):");
+    if (!name) return;
+    var slug = prompt("Workspace URL slug (lowercase, a-z 0-9 -):", name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40));
+    if (!slug) return;
+    try {
+      var r = await sb.from("spaces").insert({ slug: slug, name: name }).select().single();
+      if (r.error) throw r.error;
+      localStorage.setItem("og_space", r.data.id);
+      await loadSpaces();
+    } catch (e) { alert("Could not create workspace: " + (e.message || e)); }
+  });
+
+  // ---- giveaways ----
   function countParticipants(text) {
     var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
-    if (lines.length === 0) return 0;
-    return Math.max(0, lines.length - 1);
+    return lines.length ? Math.max(0, lines.length - 1) : 0;
   }
-  function updateCount() {
-    var n = countParticipants($("csv").value);
-    $("csvCount").textContent = n ? (n + " row" + (n === 1 ? "" : "s") + " (before dedup)") : "";
-  }
+  function updateCount() { var n = countParticipants($("csv").value); $("csvCount").textContent = n ? (n + " row" + (n === 1 ? "" : "s") + " (before dedup)") : ""; }
   $("csv").addEventListener("input", updateCount);
   $("csvFile").addEventListener("change", function (e) {
     var f = e.target.files[0]; if (!f) return;
-    var r = new FileReader();
-    r.onload = function () { $("csv").value = r.result; updateCount(); };
-    r.readAsText(f);
+    var r = new FileReader(); r.onload = function () { $("csv").value = r.result; updateCount(); }; r.readAsText(f);
   });
 
+  async function refresh() {
+    if (!current) return;
+    var r = await sb.from("giveaways").select("*").eq("space_id", current.id).order("created_at", { ascending: false });
+    if (r.error) { $("list").innerHTML = '<p class="empty">' + esc(r.error.message) + "</p>"; return; }
+    renderList(r.data || []);
+  }
+
   function renderList(items) {
+    var listEl = $("list");
     if (!items.length) {
-      listEl.innerHTML =
-        '<div class="empty"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="8" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 8h18M12 8v13M12 8s-1-4-4-4-3 3 0 4M12 8s1-4 4-4 3 3 0 4" stroke="currentColor" stroke-width="1.6"/></svg>' +
-        '<div>No giveaways yet — commit your first one.</div></div>';
+      listEl.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="8" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 8h18M12 8v13M12 8s-1-4-4-4-3 3 0 4M12 8s1-4 4-4 3 3 0 4" stroke="currentColor" stroke-width="1.6"/></svg><div>No giveaways yet — commit your first one.</div></div>';
       return;
     }
     listEl.innerHTML = "";
     items.forEach(function (g) {
-      var div = document.createElement("div");
-      div.className = "g";
-      var winners = g.winners
-        ? '<ul class="winners">' + g.winners.map(function (w, i) {
-            return '<li><span class="rank">' + (i + 1) + '</span><span class="wname">@' + esc(w.username) +
-              '</span><span class="wentry">entry #' + w.entry + "</span></li>";
-          }).join("") + "</ul>"
-        : "";
+      var div = document.createElement("div"); div.className = "g";
+      var winners = g.winners ? '<ul class="winners">' + g.winners.map(function (w, i) {
+        return '<li><span class="rank">' + (i + 1) + '</span><span class="wname">@' + esc(w.username) + '</span><span class="wentry">entry #' + w.entry + "</span></li>";
+      }).join("") + "</ul>" : "";
       var tags =
         '<span class="tag">' + g.participant_count + " participants</span>" +
         '<span class="tag">' + g.winner_count + " winner" + (g.winner_count === 1 ? "" : "s") + "</span>" +
@@ -328,32 +393,28 @@
       div.innerHTML =
         '<div class="g-top">' +
           '<span class="g-ava">' + esc(initial(g.giveaway_id)) + "</span>" +
-          '<div><div class="g-id">' + esc(g.giveaway_id) + "</div>" +
-            '<div class="g-sub">' + (g.drawn ? "Winners drawn" : "Committed · awaiting draw") + "</div></div>" +
-          '<span class="pill ' + (g.drawn ? "done" : "") + '"><span class="dot"></span>' +
-            (g.drawn ? "Drawn" : "Committed") + "</span>" +
+          '<div><div class="g-id">' + esc(g.giveaway_id) + "</div><div class=\"g-sub\">" + (g.drawn ? "Winners drawn" : "Committed · awaiting draw") + "</div></div>" +
+          '<span class="pill ' + (g.drawn ? "done" : "") + '"><span class="dot"></span>' + (g.drawn ? "Drawn" : "Committed") + "</span>" +
         "</div>" +
         '<div class="g-meta">' + tags + "</div>" +
         '<div class="commit">commitment <span class="mono">' + shorten(g.commitment) + "</span></div>" +
         winners +
         '<div class="g-foot">' +
           (g.drawn ? "" : '<button class="draw">Draw winners</button>') +
-          '<a href="/verify?g=' + encodeURIComponent(g.giveaway_id) + '"><button class="ghost" type="button">Verify →</button></a>' +
+          '<a href="/verify?s=' + encodeURIComponent(g.space_slug) + '&g=' + encodeURIComponent(g.giveaway_id) + '" target="_blank"><button class="ghost" type="button">Verify →</button></a>' +
           '<span class="drawMsg"></span>' +
         "</div>";
       listEl.appendChild(div);
-      var drawBtn = div.querySelector(".draw");
-      if (drawBtn) drawBtn.addEventListener("click", function () { doDraw(g.giveaway_id, div); });
+      var db = div.querySelector(".draw");
+      if (db) db.addEventListener("click", function () { doDraw(g.giveaway_id, div); });
     });
     hydrateOts();
   }
 
-  // Best-effort live OpenTimestamps status per card (verified server-side).
   function hydrateOts() {
     document.querySelectorAll(".ots-chip").forEach(async function (chip) {
       try {
-        var r = await fetch("/api/giveaways/" + encodeURIComponent(chip.dataset.id) + "/ots");
-        var o = await r.json();
+        var o = await authFetch("/api/spaces/" + current.id + "/giveaways/" + encodeURIComponent(chip.dataset.id) + "/ots");
         if (o.state === "attested") { chip.textContent = "OTS ✓"; chip.className = "tag good"; }
         else if (o.state === "pending") { chip.textContent = "OTS pending"; chip.className = "tag pending"; }
         else { chip.textContent = "OTS"; chip.className = "tag"; }
@@ -361,64 +422,48 @@
     });
   }
 
-  async function doDraw(id, div) {
-    var msg = div.querySelector(".drawMsg");
-    var btn = div.querySelector(".draw");
+  async function doDraw(gid, div) {
+    var msg = div.querySelector(".drawMsg"), btn = div.querySelector(".draw");
     btn.disabled = true; msg.className = "drawMsg"; msg.textContent = "Fetching Bitcoin block…";
     try {
-      await api("POST", "/api/giveaways/" + encodeURIComponent(id) + "/draw", {});
+      await authFetch("/api/spaces/" + current.id + "/giveaways/" + encodeURIComponent(gid) + "/draw", { method: "POST", body: "{}" });
       await refresh();
     } catch (e) {
       var hash = prompt(e.message + "\n\nEnter the block hash manually (64 hex chars):");
       if (hash) {
-        try {
-          await api("POST", "/api/giveaways/" + encodeURIComponent(id) + "/draw", { block_hash: hash.trim() });
-          await refresh();
-          return;
-        } catch (e2) { msg.className = "drawMsg err"; msg.textContent = e2.message; }
-      } else {
-        msg.className = "drawMsg err"; msg.textContent = e.message;
-      }
+        try { await authFetch("/api/spaces/" + current.id + "/giveaways/" + encodeURIComponent(gid) + "/draw", { method: "POST", body: JSON.stringify({ block_hash: hash.trim() }) }); await refresh(); return; }
+        catch (e2) { msg.className = "drawMsg err"; msg.textContent = e2.message; }
+      } else { msg.className = "drawMsg err"; msg.textContent = e.message; }
       btn.disabled = false;
     }
   }
 
-  async function refresh() {
-    try {
-      var data = await api("GET", "/api/giveaways");
-      renderList(data.giveaways.sort(function (a, b) { return a.giveaway_id < b.giveaway_id ? -1 : 1; }));
-    } catch (e) {
-      listEl.innerHTML = '<p class="empty">' + esc(e.message) + "</p>";
-    }
-  }
-
   $("create").addEventListener("click", async function () {
-    var msg = $("createMsg");
-    var whenRaw = $("when").value;
+    if (!current) { alert("Create or select a workspace first."); return; }
+    var msg = $("createMsg"), whenRaw = $("when").value;
     var body = {
-      giveaway_id: $("id").value.trim(),
-      csv: $("csv").value,
-      winner_count: parseInt($("winners").value, 10),
-      block_height: parseInt($("block").value, 10),
+      giveaway_id: $("id").value.trim(), csv: $("csv").value,
+      winner_count: parseInt($("winners").value, 10), block_height: parseInt($("block").value, 10),
       timezone: $("tz").value.trim() || "UTC",
       scheduled_at: whenRaw ? new Date(whenRaw).toISOString() : undefined,
       ots: $("ots").checked,
     };
     $("create").disabled = true; setMsg(msg, "Committing…", "");
     try {
-      var g = await api("POST", "/api/giveaways", body);
-      setMsg(msg, "✓ Committed " + g.giveaway_id + " — commitment " + shorten(g.commitment) +
-        (g.ots_stamped ? " (OpenTimestamped)" : ""), "ok");
+      var g = await authFetch("/api/spaces/" + current.id + "/giveaways", { method: "POST", body: JSON.stringify(body) });
+      setMsg(msg, "✓ Committed " + g.giveaway_id + " — commitment " + shorten(g.commitment) + (g.has_ots ? " (OpenTimestamped)" : ""), "ok");
       $("id").value = ""; $("csv").value = ""; $("block").value = ""; updateCount();
       await refresh();
-    } catch (e) {
-      setMsg(msg, e.message, "err");
-    } finally {
-      $("create").disabled = false;
-    }
+    } catch (e) { setMsg(msg, e.message, "err"); }
+    finally { $("create").disabled = false; }
   });
 
-  refresh();
+  // ---- boot ----
+  (async function () {
+    $("bootMsg").textContent = "Loading…";
+    session = (await sb.auth.getSession()).data.session;
+    await renderAuth();
+  })();
 })();
 </script>
 </body>

@@ -1,5 +1,6 @@
 node_modules/
 dist/
+web/vendor/
 *.log
 .DS_Store
 # local giveaway working directories

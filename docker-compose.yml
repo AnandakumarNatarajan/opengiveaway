@@ -1,11 +1,19 @@
+# Multi-tenant OpenGiveaway server, pointed at a Supabase project (Cloud or
+# self-hosted). Copy .env.example to .env and fill in SUPABASE_URL /
+# SUPABASE_ANON_KEY first. Apply supabase/migrations to that project once.
+#
+#   docker compose up --build
+#
+# For a fully self-hosted stack (Supabase in Docker too), see
+# docker-compose.supabase.yml and the README.
 services:
-  opengiveaway:
+  app:
     build: .
     ports:
       - "8080:8080"
-    volumes:
-      - giveaway-data:/data
+    environment:
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      BITCOIN_PROVIDER_URL: ${BITCOIN_PROVIDER_URL:-https://mempool.space/api}
+      PORT: "8080"
     restart: unless-stopped
-
-volumes:
-  giveaway-data:

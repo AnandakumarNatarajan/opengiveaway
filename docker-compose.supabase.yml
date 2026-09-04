@@ -1,0 +1,29 @@
+# Fully self-hosted option: run the Supabase stack in Docker alongside the app.
+#
+# Supabase publishes an official multi-container compose stack (Postgres,
+# GoTrue/Auth, Storage, Kong gateway, etc.). Rather than vendor and drift from
+# it here, use theirs and point this app at it:
+#
+#   1. git clone --depth 1 https://github.com/supabase/supabase
+#   2. cp -r supabase/docker ./supabase-stack && cd supabase-stack
+#      cp .env.example .env   # set POSTGRES_PASSWORD, JWT_SECRET, ANON_KEY, etc.
+#      docker compose up -d
+#   3. Apply this repo's supabase/migrations to that Postgres (psql or the
+#      Supabase CLI: `supabase db push`).
+#   4. Back here, set SUPABASE_URL=http://<kong-host>:8000 and SUPABASE_ANON_KEY
+#      in .env, then run the app on the same Docker network:
+#
+#        docker compose -f docker-compose.yml -f docker-compose.supabase.yml up --build
+#
+# This overlay only attaches the app to the external Supabase network; it does
+# not redefine the Supabase services (kept in their own compose so they stay in
+# sync with upstream).
+services:
+  app:
+    networks:
+      - supabase
+
+networks:
+  supabase:
+    external: true
+    name: supabase_default

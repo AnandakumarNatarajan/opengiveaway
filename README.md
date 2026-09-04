@@ -36,10 +36,59 @@ npm run build     # compiles to dist/  (then `opengiveaway` is runnable)
 
 Node ≥ 20. During development, run the CLI with `npm run cli -- <command>`.
 
-## Self-hosted server (organizer Web UI + API)
+## Multi-tenant server (Supabase)
 
-The quickest way to run everything — create giveaways, draw them, and hand out
-a verifier link — is the built-in server:
+For a real deployment with **user accounts and workspaces**, run the
+Supabase-backed server (`host`). Users sign in, giveaways are scoped to a
+**space** (workspace) with members and roles, and tenant isolation is enforced
+by Postgres **Row Level Security** — the server runs every query as the
+signed-in user, never with a service-role key. Public verification stays
+**trustless**: artifacts live in a public Storage bucket, so anyone can verify a
+result while logged out.
+
+```
+Browser ──supabase-js (auth, spaces, giveaway lists via RLS)──► Supabase (Auth/DB)
+   │                                                              ▲
+   └──Bearer JWT──► Node `host` server (crypto: commit/draw/OTS)──┘ uploads artifacts
+                         │                                        ▼
+   Verifier (public) ◄───┴── /g/<space>/<gid>/<file> ◄─── Supabase Storage (public bucket)
+```
+
+### Setup
+
+1. Create a Supabase project (Cloud or self-hosted) and apply the schema:
+   ```bash
+   supabase start                      # local dev, or use a Cloud project
+   psql "$DATABASE_URL" -f supabase/migrations/0001_init.sql   # or `supabase db push`
+   ```
+   This creates `spaces`, `space_members`, `giveaways`, the RLS policies, and a
+   public `giveaways` Storage bucket.
+2. Configure and run:
+   ```bash
+   cp .env.example .env                # set SUPABASE_URL and SUPABASE_ANON_KEY
+   npm run build
+   node --env-file=.env dist/cli/index.js host --port 8080
+   # open http://localhost:8080 — sign up, create a workspace, run a giveaway
+   ```
+
+The frontend only ever receives the project URL + anon key (via `/config.js`);
+the service-role key is never exposed. See `PROTOCOL.md` for the (unchanged)
+cryptographic protocol.
+
+### Docker
+
+```bash
+cp .env.example .env                   # SUPABASE_URL + SUPABASE_ANON_KEY
+docker compose up --build              # multi-tenant server on :8080
+```
+
+For a fully self-hosted stack (Supabase in Docker too), see
+`docker-compose.supabase.yml`.
+
+## Single-tenant / offline server (no Supabase)
+
+For a simple, filesystem-backed instance with **no accounts** (or fully offline
+use), the original server stores each giveaway under `data/<id>/`:
 
 ```bash
 npm run build          # compiles dist/ and builds web/verifier.html
@@ -200,17 +249,20 @@ src/
   sources/csv   CSV participant source (the only source in Phase 1)
   bitcoin/      pluggable block provider (Esplora/mempool.space; offline for tests)
   timestamp/    OpenTimestamps wrapper (optional dependency)
-  cli/          commit / draw / verify / prove / check-proof / upgrade / serve / app
+  cli/          commit / draw / verify / prove / check-proof / upgrade / serve / app / host
   server/       self-hosted HTTP layer: organizer UI + JSON API + artifacts
+    app.ts        single-tenant, filesystem-backed
+    tenant/       multi-tenant: Supabase Auth + Postgres (RLS) + Storage
   verify/       isomorphic, dependency-free verifier (Node + browser)
     sha256      pure-JS SHA-256 (cross-checked against node:crypto)
     core        canonical JSON, Merkle verify, commitment, seed, winners
     cli         standalone `opengiveaway-verify` binary
     browser     bundled into web/verifier.html
 web/
-  app.html      organizer Web UI (served by `app`)
+  app.html      organizer Web UI (auth + workspaces via supabase-js)
   verifier.html self-contained public verifier (template + built HTML)
-Dockerfile, docker-compose.yml   self-hosted deployment
+supabase/       migrations (schema + RLS + Storage) and local config
+Dockerfile, docker-compose*.yml, .env.example   self-hosted deployment
 ```
 
 ## OpenTimestamps note
@@ -228,8 +280,12 @@ protocol has no such dependencies.
 - **Phase 3:** Public web verifier, participant lookup with browser-side Merkle
   verification, standalone dependency-free CLI verifier package. ✅
 - **Self-hosted app:** organizer Web UI + JSON API + Docker packaging. ✅
+- **Multi-tenant:** Supabase-backed auth, workspaces with members/roles (RLS),
+  Storage-backed artifacts, `host` server + Docker. ✅
 - **Phase 2 (deferred):** Instagram OAuth/API comment source feeding the same
   participant pipeline.
+- **Later:** private participant lists (proof-only inclusion), email invitations,
+  audit log.
 
 ## License
 
